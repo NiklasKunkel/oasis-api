@@ -29,6 +29,10 @@ func AdjustForPrecision(i *big.Int, precision int64) *big.Float {
 	//For debug purposes take this out later
 	fmt.Println(f1)
 
+	if (precision == 0) {
+		return f1
+	}
+
 	//Convert precision into exponentiated int
 	i2 := new(big.Int).Exp(big.NewInt(10), big.NewInt(precision), nil)
 

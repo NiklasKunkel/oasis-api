@@ -15,77 +15,141 @@ const (
 )
 
 var EthClient = ethrpc.NewEthRPC(HOST)
-var TokenPairContractLib = map[string]tokenPairAddr{
-	"MKRETH": tokenPairAddr{
-		quoteToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	"MKRSAI": tokenPairAddr{
-		quoteToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
-		denomToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4")},
-	"ETHSAI": tokenPairAddr{
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		denomToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4")},
-	"DGDETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"RHOCETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"REPETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"ICNETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"1STETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"GNTETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"VSLETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"PLUETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"MLNETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"NMRETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"TIMEETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"GUPETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"BATETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
-	"SNGLSETH": tokenPairAddr{
-		quoteToken: strings.ToLower(""),
-		denomToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7")},
-	}
+
+var TokenInfoLib = map[string]tokenInfo{
+	"MKR": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
+		precision: 18},
+	"ETH": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precision: 18},
+	"SAI": tokenInfo{
+		contract: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
+		precision: 18},
+	"DGD": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000e0b7927c4af23765cb51314a0e0521a9645f0e2a"),
+		precision: 9},
+	"RHOC": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
+		precision: 8},
+	"REP": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000e94327d07fc17907b4db788e5adf2ed424addff6"),
+		precision: 18},
+	"ICN": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000888666ca69e0f178ded6d75b5726cee99a87d698"),
+		precision: 18},
+	"1ST": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000af30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"),
+		precision: 18},
+	"GNT": tokenInfo{
+		contract: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
+		precision: 18},
+	"VSL": tokenInfo{
+		contract: strings.ToLower("0x0000000000000000000000005c543e7ae0a1104f78406c340e9c64fd9fce5170"),
+		precision: 18},
+	"PLU": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000d8912c10681d8b21fd3742244f44658dba12264e"),
+		precision: 18},
+	"MLN": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000beb9ef514a379b997e0798fdcc901ee474b6d9a1"),
+		precision: 18},
+	"NMR": tokenInfo{
+		contract: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
+		precision: 18},
+	"TIME": tokenInfo{
+		contract: strings.ToLower("0x0000000000000000000000006531f133e6deebe7f2dce5a0441aa7ef330b4e53"),
+		precision: 8},
+	"GUP": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000f7b098298f7c69fc14610bf71d5e02c60792894c"),
+		precision: 3},
+	"BAT": tokenInfo{
+		contract: strings.ToLower("0x0000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef"),
+		precision: 18},
+	"SNGLS": tokenInfo{
+		contract: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
+		precision: 0},
 }
 
-type tokenPairAddr struct {
+type tokenInfo struct {
+	contract string
+	precision int
+}
+
+var TokenPairContractLib = map[string]tokenPairInfo{
+	"MKRETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"MKRSAI": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
+		quoteToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
+		precisionDelta: 0},
+	"ETHSAI": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		quoteToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
+		precisionDelta: 0},
+	"DGDETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000e0b7927c4af23765cb51314a0e0521a9645f0e2a"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 9},
+	"RHOCETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 10},
+	"REPETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000e94327d07fc17907b4db788e5adf2ed424addff6"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"ICNETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000888666ca69e0f178ded6d75b5726cee99a87d698"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"1STETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000af30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"GNTETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"VSLETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x0000000000000000000000005c543e7ae0a1104f78406c340e9c64fd9fce5170"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"PLUETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000d8912c10681d8b21fd3742244f44658dba12264e"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"MLNETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000beb9ef514a379b997e0798fdcc901ee474b6d9a1"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"NMRETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"TIMEETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x0000000000000000000000006531f133e6deebe7f2dce5a0441aa7ef330b4e53"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 10},
+	"GUPETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000f7b098298f7c69fc14610bf71d5e02c60792894c"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 15},
+	"BATETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x0000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 0},
+	"SNGLSETH": tokenPairInfo{
+		baseToken: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
+		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		precisionDelta: 18},
+}
+
+type tokenPairInfo struct {
+	baseToken string
 	quoteToken string
-	denomToken string
+	precisionDelta int
 }
 
 func InitClient() {
@@ -249,7 +313,7 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 		fromBlockNum64, err := strconv.ParseInt(fromBlock, 10, 32)
 		if err != nil {
 			fmt.Errorf("[CreateEventFilter] failed due to invalid fromBlock (%s) with error (%s)\n", fromBlock, err)
-		} else if fromBlockNum <= 0 || int(fromBlockNum64) > toBlockNum {
+		} else if fromBlockNum64 <= 0 || int(fromBlockNum64) > toBlockNum {
 			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param fromBlock (%s), block must be larger than zero and less than %d\n", fromBlock, toBlockNum)
 		}
 		fromBlockNum = int(fromBlockNum64)
@@ -316,15 +380,59 @@ func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
 	return logs, nil
 }
 
-func CalculatePriceFromLogs(tokenPair string, logs []ethrpc.Log)  (string, error) {
+func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol *big.Int, sumQuoteVol *big.Int, min *big.Float, max *big.Float) {
+	var sQuoteVol string
+	var sBaseVol string
+	intVol := new(big.Int)
+	fBaseVol := new(big.Float)
+	fQuoteVol := new(big.Float)
+
+	if (len(log.Data) != 130) {
+		fmt.Printf("Error: Log Data field should be 130 chars. Data field = %s", log.Data)
+		return
+	}
+	if (isBaseFirst) {
+		sBaseVol = log.Data[2:65]
+		sQuoteVol = log.Data[66:129]
+	} else {
+		sQuoteVol = log.Data[2:65]
+		sBaseVol = log.Data[66:129]
+	}
+	//Debug - logging
+	fmt.Printf("baseVol for log %d = %s\n", index, sBaseVol)
+	fmt.Printf("quoteVol for log %d = %s\n", index, sQuoteVol)
+
+
+	intVol = parser.Hex2Int(sQuoteVol)			//convert quote token volume from hex string to integer
+	sumQuoteVol.Add(sumQuoteVol, intVol)		//add quote token volume to cumulative quote Volume
+	fQuoteVol.SetInt(intVol)					//convert quote token volume from integer to float
+
+	intVol = parser.Hex2Int(sBaseVol)			//convert base token volume from hex string to integer
+	sumBaseVol.Add(sumBaseVol, intVol)			//add base token volume to cumulative quote Volume
+	fBaseVol.SetInt(intVol)						//convert base token volume from integer to float
+
+	fQuoteVol.Quo(fQuoteVol, fBaseVol)			//calculate price of base token in reference to quote token
+	if ((min.Cmp(fQuoteVol) == 1) || (min.Sign() == 0)) {//if price is lower than minimum price
+		min.Set(fQuoteVol)						//set new minimum price
+	}
+	if (max.Cmp(fQuoteVol) == -1) {				//if price is higer than maximumum price
+		max.Set(fQuoteVol)						//set new maximum price
+	}
+
+}
+
+func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, error) {
+	sumBaseVol := big.NewInt(0)
 	sumQuoteVol := big.NewInt(0)
-	sumDenomVol := big.NewInt(0)
-	temp := new(big.Int)
+	price := new(big.Float)
+	max := new(big.Float).SetInt(sumBaseVol)
+ 	min := new(big.Float).SetInt(sumBaseVol)	//Base Volume is used here to avoid instantiating new big.Int
 
-	tokenPairContracts := TokenPairContractLib[tokenPair]
+	baseTokenContract := TokenInfoLib[baseToken].contract
+	quoteTokenContract := TokenInfoLib[quoteToken].contract
 
-	fmt.Printf("Quote token contract = %s\n", tokenPairContracts.quoteToken)
-	fmt.Printf("Denom token contract = %s\n", tokenPairContracts.denomToken)
+	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
+	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	for i, log := range logs {
 		fmt.Printf("\nParsing Event Log %d\n", i)
@@ -332,47 +440,34 @@ func CalculatePriceFromLogs(tokenPair string, logs []ethrpc.Log)  (string, error
 			fmt.Println("Skipped Log")
 			//skip log - this should never happen
 			continue
-		} else if (log.Topics[1] == tokenPairContracts.quoteToken && log.Topics[2] == tokenPairContracts.denomToken) {
+		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
 			fmt.Println("Found topic 1 is quoteToken and topic 2 is denomToken")
-			//Parse data block
-			if (len(log.Data) != 130) {
-				fmt.Printf("Error: Log Data field should be 130 chars. Data field = %s", log.Data)
-			}
-			quoteVol := log.Data[2:65]
-			denomVol := log.Data[66:129]
-			fmt.Printf("quoteVol for log %d = %s\n", i, quoteVol)
-			fmt.Printf("denomVol for log %d = %s\n", i, denomVol)
-
-		
-			temp = parser.Hex2Int(quoteVol)
-			sumQuoteVol.Add(sumQuoteVol, temp)
-
-			temp = parser.Hex2Int(denomVol)
-			sumDenomVol.Add(sumDenomVol, temp)
-		} else if (log.Topics[1] == tokenPairContracts.denomToken && log.Topics[2] == tokenPairContracts.quoteToken) {
+			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max)
+		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
 			fmt.Println("Found topic 1 is denomToken and topic 2 is quoteToken")
-
-			temp = parser.Hex2Int(log.Topics[1])
-			sumDenomVol.Add(sumDenomVol, temp)
-
-			temp = parser.Hex2Int(log.Topics[2])
-			sumQuoteVol.Add(sumQuoteVol, temp)
+			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max)
 		}
 	}
-	//print sum of trade quote and denom tokens
-	fmt.Printf("sumDenomVol = %s\n", sumDenomVol.Text(10))
+	//Debug - print sum of trade quote and denom tokens
+	fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
 	fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
 
 	//convert sums from into to float
-	sumDenomVolF := new(big.Float).SetInt(sumDenomVol)
-	sumQuoteVolF := new(big.Float).SetInt(sumQuoteVol)
-
-	result := new(big.Float)
+	fSumBaseVol := new(big.Float).SetInt(sumBaseVol)
+	fSumQuoteVol := new(big.Float).SetInt(sumQuoteVol)
 
 	//calculate volume weighted priced
-	result.Quo(sumDenomVolF, sumQuoteVolF)
-	fmt.Printf("Avg Weighted Price = %s\n", result.Text('f', 8))
-	return result.Text('f', 8), nil
+	price.Quo(fSumQuoteVol, fSumBaseVol)
+
+	//adjust for token precision differences
+
+
+	//Debug - print volume weighted price
+	fmt.Printf("Volume Weighted Price = %s\n", price.Text('f', 8))
+	fmt.Printf("Max price = %s\n", max.Text('f', 8))
+	fmt.Printf("Min price = %s\n", min.Text('f', 8))
+
+	return price.Text('f', 8), nil
 }
 
 func LatestBlockNumber() (int) {
