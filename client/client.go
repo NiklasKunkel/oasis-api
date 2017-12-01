@@ -398,24 +398,31 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 }
 
 func GetSpread(baseToken string, quoteToken string) (string, string, error) {
-	//construct calldata
-	bidCalldata := "0x0374fc6f" + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:] + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:]
-	askCalldata := "0x0374fc6f" + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:] + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:]
-
-	fBid, err := GetBestOffer(baseToken, quoteToken, bidCalldata)
+	fBid, err := GetBestOffer(baseToken, quoteToken, "bid")
 	if err != nil {
 		return "","",fmt.Errorf("[GetSpread] failed to get Bid due to (%s)\n", err)
 	}
 
-	fAsk, err := GetBestOffer(baseToken, quoteToken, askCalldata)
+	fAsk, err := GetBestOffer(baseToken, quoteToken, "ask")
 	if err != nil {
 		return "","",fmt.Errorf("[GetSpread] failed to get Ask due to (%s)\n", err)
 	}
 	return fBid, fAsk, err
 }
 
-func GetBestOffer(baseToken string, quoteToken string, calldata string) (string, error) {
+func GetBestOffer(baseToken string, quoteToken string, otype string) (string, error) {
 	fBestOffer := new(big.Float)
+	var calldata string
+
+	//construct calldata
+	switch otype {
+	case "ask":
+		calldata = "0x0374fc6f" + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:] + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:]
+	case "bid":
+		calldata = "0x0374fc6f" + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:] + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:]
+	default:
+		return "", fmt.Errorf("[GetBestOffer] failed due to invalid order type param\n")
+	}
 
 	//debug
 	fmt.Printf("Calldata = %s\n", calldata)
@@ -456,8 +463,18 @@ func GetBestOffer(baseToken string, quoteToken string, calldata string) (string,
 	fmt.Printf("Offer = %s\nLength of Offer is %d", offer, len(offer))
 
 	//Parse response into order amounts
-	sBaseTokenAmt := offer[2:66]
-	sQuoteTokenAmt := offer[130:194]
+	var sQuoteTokenAmt string
+	var sBaseTokenAmt string
+	switch otype {
+	case "bid":
+		sQuoteTokenAmt = offer[2:66]
+		sBaseTokenAmt = offer[130:194]
+	case "ask":
+		sBaseTokenAmt = offer[2:66]
+		sQuoteTokenAmt = offer[130:194]
+	default:
+		return "", fmt.Errorf("[GetBestOffer] failed due to invalid order type param\n")
+	}
 
 	//debug
 	fmt.Printf("Base Token Amount = %s\n", sBaseTokenAmt)

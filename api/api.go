@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"strings"
+	"time"
 	"github.com/gorilla/mux"
 	"github.com/niklaskunkel/oasis-api/client"
 	"github.com/niklaskunkel/oasis-api/parser"
@@ -87,7 +88,7 @@ func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Printf("GetTokenPair] could not GetSpread() due to (%s)\n", err)
 	}
-	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sVolume, ask, bid, sMin, sMax, true, 1})
+	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
 	return
 }
 

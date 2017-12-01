@@ -14,15 +14,15 @@ type MkrTokenPrice struct {
 }
 
 type TokenPair struct {
-	TokenPair	string	`json:"tokenPair,omitempty"`
+	TokenPair	string	`json:"pair,omitempty"`
 	Price 		string	`json:"price,omitempty"`
-	Volume 		string	`json:"volume,omitempty"`
-	LowestAsk 	string	`json:"lowestAsk,omitempty"`
-	HighestBid 	string	`json:"highestBid,omitempty"`
-	Low24Hr		string	`json:"low24Hr,omitempty"`
-	High24Hr	string 	`json:"high24Hr,omitempty"`
+	Volume 		string	`json:"vol,omitempty"`
+	LowestAsk 	string	`json:"ask,omitempty"`
+	HighestBid 	string	`json:"bid,omitempty"`
+	Low24Hr		string	`json:"low,omitempty"`
+	High24Hr	string 	`json:"high,omitempty"`
 	Active		bool	`json:"active,omitempty"`
-	LastUpdated	uint	`json:"lastUpdated,omitempty"`
+	LastUpdated	int64	`json:"time,omitempty"`
 }
 
 type Spread struct {
