@@ -19,10 +19,15 @@ type TokenPair struct {
 	Volume 		string	`json:"volume,omitempty"`
 	LowestAsk 	string	`json:"lowestAsk,omitempty"`
 	HighestBid 	string	`json:"highestBid,omitempty"`
-	High24Hr	string 	`json:"high24Hr,omitempty"`
 	Low24Hr		string	`json:"low24Hr,omitempty"`
-	IsFrozen	bool	`json:"isFrozen,omitempty"`
+	High24Hr	string 	`json:"high24Hr,omitempty"`
+	Active		bool	`json:"active,omitempty"`
 	LastUpdated	uint	`json:"lastUpdated,omitempty"`
+}
+
+type Spread struct {
+	Bid 	string 	`json:"bid,omitempty"`
+	Ask 	string 	`json:"ask,omitempty"`
 }
 
 type TokenPairPrice struct {

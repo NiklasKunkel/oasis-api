@@ -75,83 +75,6 @@ type tokenInfo struct {
 	precision int
 }
 
-var TokenPairContractLib = map[string]tokenPairInfo{
-	"MKRETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"MKRSAI": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
-		quoteToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
-		precisionDelta: 0},
-	"ETHSAI": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		quoteToken: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
-		precisionDelta: 0},
-	"DGDETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000e0b7927c4af23765cb51314a0e0521a9645f0e2a"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 9},
-	"RHOCETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 10},
-	"REPETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000e94327d07fc17907b4db788e5adf2ed424addff6"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"ICNETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000888666ca69e0f178ded6d75b5726cee99a87d698"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"1STETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000af30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"GNTETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"VSLETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x0000000000000000000000005c543e7ae0a1104f78406c340e9c64fd9fce5170"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"PLUETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000d8912c10681d8b21fd3742244f44658dba12264e"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"MLNETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000beb9ef514a379b997e0798fdcc901ee474b6d9a1"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"NMRETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"TIMEETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x0000000000000000000000006531f133e6deebe7f2dce5a0441aa7ef330b4e53"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 10},
-	"GUPETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000f7b098298f7c69fc14610bf71d5e02c60792894c"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 15},
-	"BATETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x0000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 0},
-	"SNGLSETH": tokenPairInfo{
-		baseToken: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
-		quoteToken: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precisionDelta: 18},
-}
-
-type tokenPairInfo struct {
-	baseToken string
-	quoteToken string
-	precisionDelta int
-}
-
 func InitClient() {
 	for err := VerifyClientConnection(); err != nil; err = VerifyClientConnection() {
 		fmt.Printf(err.Error());
@@ -374,9 +297,11 @@ func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
 		return []ethrpc.Log{}, fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
 	}
 	fmt.Printf("\n[GetLog] Event Logs\n")
+	/*
 	for _, log := range logs {
 		fmt.Printf("%+v\n", log)
 	}
+	*/
 	return logs, nil
 }
 
@@ -386,42 +311,44 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 	intVol := new(big.Int)
 	fBaseVol := new(big.Float)
 	fQuoteVol := new(big.Float)
+	fPrice := new(big.Float)
+
 
 	if (len(log.Data) != 130) {
 		fmt.Printf("Error: Log Data field should be 130 chars. Data field = %s", log.Data)
 		return
 	}
 	if (isBaseFirst) {
-		sBaseVol = log.Data[2:65]
-		sQuoteVol = log.Data[66:129]
+		sBaseVol = log.Data[2:66]
+		sQuoteVol = log.Data[67:130]
 	} else {
-		sQuoteVol = log.Data[2:65]
-		sBaseVol = log.Data[66:129]
+		sQuoteVol = log.Data[2:66]
+		sBaseVol = log.Data[67:130]
 	}
 	//Debug - logging
 	fmt.Printf("baseVol for log %d = %s\n", index, sBaseVol)
 	fmt.Printf("quoteVol for log %d = %s\n", index, sQuoteVol)
 
 
-	intVol = parser.Hex2Int(sQuoteVol)			//convert quote token volume from hex string to integer
-	sumQuoteVol.Add(sumQuoteVol, intVol)		//add quote token volume to cumulative quote Volume
-	fQuoteVol.SetInt(intVol)					//convert quote token volume from integer to float
+	intVol = parser.Hex2Int(sBaseVol)		//convert base token volume from hex string to integer
+	sumBaseVol.Add(sumBaseVol, intVol)		//add base token volume to cumulative base Volume
+	fBaseVol.SetInt(intVol)					//convert base token volume from integer to float
 
-	intVol = parser.Hex2Int(sBaseVol)			//convert base token volume from hex string to integer
-	sumBaseVol.Add(sumBaseVol, intVol)			//add base token volume to cumulative quote Volume
-	fBaseVol.SetInt(intVol)						//convert base token volume from integer to float
+	intVol = parser.Hex2Int(sQuoteVol)		//convert quote token volume from hex string to integer
+	sumQuoteVol.Add(sumQuoteVol, intVol)	//add quote token volume to cumulative quote Volume
+	fQuoteVol.SetInt(intVol)				//convert quote token volume from integer to float
 
-	fQuoteVol.Quo(fQuoteVol, fBaseVol)			//calculate price of base token in reference to quote token
-	if ((min.Cmp(fQuoteVol) == 1) || (min.Sign() == 0)) {//if price is lower than minimum price
-		min.Set(fQuoteVol)						//set new minimum price
+	fPrice.Quo(fQuoteVol, fBaseVol)			//calculate price of base token in reference to quote token
+	if ((min.Cmp(fPrice) == 1) || (min.Sign() == 0)) { //if price is lower than minimum price
+		min.Set(fPrice)						//set new minimum price
 	}
-	if (max.Cmp(fQuoteVol) == -1) {				//if price is higer than maximumum price
-		max.Set(fQuoteVol)						//set new maximum price
+	if (max.Cmp(fPrice) == -1) {			//if price is higer than maximumum price
+		max.Set(fPrice)						//set new maximum price
 	}
 
 }
 
-func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, error) {
+func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, error) {
 	sumBaseVol := big.NewInt(0)
 	sumQuoteVol := big.NewInt(0)
 	price := new(big.Float)
@@ -435,16 +362,16 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	for i, log := range logs {
-		fmt.Printf("\nParsing Event Log %d\n", i)
+		//fmt.Printf("\nParsing Event Log %d\n", i)
 		if (len(log.Topics) != 3) {
 			fmt.Println("Skipped Log")
 			//skip log - this should never happen
 			continue
 		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
-			fmt.Println("Found topic 1 is quoteToken and topic 2 is denomToken")
+			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
 			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max)
 		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
-			fmt.Println("Found topic 1 is denomToken and topic 2 is quoteToken")
+			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
 			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max)
 		}
 	}
@@ -452,25 +379,119 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
 	fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
 
-	//convert sums from into to float
-	fSumBaseVol := new(big.Float).SetInt(sumBaseVol)
-	fSumQuoteVol := new(big.Float).SetInt(sumQuoteVol)
+	//Adjust for token precision
+	adjustedSumBaseVol := parser.AdjustIntForPrecision(sumBaseVol, TokenInfoLib[baseToken].precision)
+	adjustedSumQuoteVol := parser.AdjustIntForPrecision(sumQuoteVol, TokenInfoLib[quoteToken].precision)
+	min = parser.AdjustFloatForPrecision(min, GetPrecisionDelta(baseToken, quoteToken))
+	max = parser.AdjustFloatForPrecision(max, GetPrecisionDelta(baseToken, quoteToken))
 
 	//calculate volume weighted priced
-	price.Quo(fSumQuoteVol, fSumBaseVol)
-
-	//adjust for token precision differences
-
+	price.Quo(adjustedSumQuoteVol, adjustedSumBaseVol)
 
 	//Debug - print volume weighted price
 	fmt.Printf("Volume Weighted Price = %s\n", price.Text('f', 8))
+	fmt.Printf("Volume = %s\n", adjustedSumBaseVol.Text('f', 8))
 	fmt.Printf("Max price = %s\n", max.Text('f', 8))
 	fmt.Printf("Min price = %s\n", min.Text('f', 8))
 
-	return price.Text('f', 8), nil
+	return price.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
 }
+
+func GetSpread(baseToken string, quoteToken string) (string, string, error) {
+	//construct calldata
+	bidCalldata := "0x0374fc6f" + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:] + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:]
+	askCalldata := "0x0374fc6f" + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:] + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:]
+
+	fBid, err := GetBestOffer(baseToken, quoteToken, bidCalldata)
+	if err != nil {
+		return "","",fmt.Errorf("[GetSpread] failed to get Bid due to (%s)\n", err)
+	}
+
+	fAsk, err := GetBestOffer(baseToken, quoteToken, askCalldata)
+	if err != nil {
+		return "","",fmt.Errorf("[GetSpread] failed to get Ask due to (%s)\n", err)
+	}
+	return fBid, fAsk, err
+}
+
+func GetBestOffer(baseToken string, quoteToken string, calldata string) (string, error) {
+	fBestOffer := new(big.Float)
+
+	//debug
+	fmt.Printf("Calldata = %s\n", calldata)
+
+	//create tx object for querying id of best offer
+	tx := CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		calldata,
+		0)
+	//call tx to grab id of best offer 
+	offerid, err := CallTx(tx)
+	if err != nil {
+		return "", fmt.Errorf("[GetBestOffer] failed to obtain offer id due to (%s)\n", err)
+	}
+	//debug 
+	fmt.Printf("Offer Id = %s\n", offerid)
+	//construct calldata
+	calldata = "0x4579268a" + offerid[2:]
+	//create new tx object for querying best offer
+	tx = CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		calldata,
+		0)
+	//call tx to grab best offer
+	offer, err := CallTx(tx)
+	if err != nil {
+		return "", fmt.Errorf("[GetBestOffer] failed to obtain offer due to (%s)\n", err)
+	}
+	//debug
+	fmt.Printf("Offer = %s\nLength of Offer is %d", offer, len(offer))
+
+	//Parse response into order amounts
+	sBaseTokenAmt := offer[2:66]
+	sQuoteTokenAmt := offer[130:194]
+
+	//debug
+	fmt.Printf("Base Token Amount = %s\n", sBaseTokenAmt)
+	fmt.Printf("Quote Token Amount = %s\n", sQuoteTokenAmt)
+
+	//convert from string to int
+	intBaseTokenAmt := parser.Hex2Int(sBaseTokenAmt)
+	intQuoteTokenAmt:= parser.Hex2Int(sQuoteTokenAmt)
+
+	//debug
+	fmt.Printf("[PostHex2Int] Base Token Amount = %s\n", intBaseTokenAmt.Text(10))
+	fmt.Printf("[PostHex2Int] Quote Token Amount = %s\n", intQuoteTokenAmt.Text(10))
+
+	//adjust for precision
+	adjustedBaseTokenAmt := parser.AdjustIntForPrecision(intBaseTokenAmt, TokenInfoLib[baseToken].precision)
+	adjustedQuoteTokenAmt := parser.AdjustIntForPrecision(intQuoteTokenAmt, TokenInfoLib[quoteToken].precision)
+
+	//debug
+	fmt.Printf("[Post-AdjustIntForPrecision] Base Token Amount = %s\n", adjustedBaseTokenAmt.Text('f', 8))
+	fmt.Printf("[Post-AdjustIntForPrecision] Quote Token Amount = %s\n", adjustedQuoteTokenAmt.Text('f', 8))
+
+	//calculate price
+	fBestOffer.Quo(adjustedQuoteTokenAmt, adjustedBaseTokenAmt)
+
+	return fBestOffer.Text('f', 8), nil
+}
+
+//function getBestOffer(ERC20 sell_gem, ERC20 buy_gem) public constant returns(uint)
 
 func LatestBlockNumber() (int) {
 	latest, _ := EthClient.EthBlockNumber()
 	return latest
+}
+
+func GetPrecisionDelta(baseToken string, quoteToken string) (int) {
+	return TokenInfoLib[quoteToken].precision - TokenInfoLib[baseToken].precision
 }
