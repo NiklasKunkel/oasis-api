@@ -1,8 +1,19 @@
 package api
 
 import (
-	//"math/big"
 )
+
+type market struct{
+	Pair 	string 	`json:"pair,omitempty"`
+	Base	string 	`json:"base,omitempty"`
+	Quote 	string 	`json:"quote,omitempty"`
+	BasePrecision 	string 	`json:"basePrecision,omitempty"`
+	QuotePrecision 	string 	`json:"quotePrecision,omitempty"`
+	Active 	bool 	`json:"active,omitempty"`
+	Time 	int64 	`json:"time,omitempty"`
+}
+
+type Markets []market
 
 type MkrTokenSupply struct {
 	//TotalSupply 	*big.Float	`json:"totalSupply, omitempty"`
@@ -25,7 +36,7 @@ type TokenPair struct {
 	LastUpdated	int64	`json:"time,omitempty"`
 }
 
-type Spread struct {
+type TokenPairSpread struct {
 	Bid 	string 	`json:"bid,omitempty"`
 	Ask 	string 	`json:"ask,omitempty"`
 }

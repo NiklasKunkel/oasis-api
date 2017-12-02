@@ -35,30 +35,6 @@ func GetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
-/*
-//Get MKR Token Price
-func GetMkrTokenPrice(w http.ResponseWriter, req *http.Request) {
-	//Subscribe to Event Filter
-	params, err := client.CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
-	if err != nil {
-		fmt.Printf("[GetMkrTokenPrice] could not CreateEventFilter() due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR Token Price Failed")})
-		return
-	}
-	logs, err := client.GetLogs(params)
-	if err != nil {
-		fmt.Printf("[GetMkrTokenPrice] could not GetLogs() due to (%s)\n", err)
-		return
-	}
-	sPrice, err := client.CalculatePriceFromLogs(logs, "MKR", "ETH")
-	if err != nil {
-		fmt.Printf("[GetMkrTokenPrice] could not CalculatePriceFromLogs() due to (%s)\n", err)
-	}
-	json.NewEncoder(w).Encode(MkrTokenPrice{sPrice})
-	return
-}
-*/
-
 //Get All Token Data 
 func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req) 
@@ -66,7 +42,15 @@ func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 	quoteToken := strings.ToUpper(params["quote"])
 	tokenPair := baseToken + string('/') + quoteToken
 
-	filter, err := client.CreateEventFilter("4601800", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	//need to check that tokenPair is in supported tokens list
+
+	bid, ask, err := client.GetSpread(baseToken, quoteToken)
+	if err != nil {
+		fmt.Printf("GetTokenPair] could not GetSpread() due to (%s)\n", err)
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+	}
+
+	filter, err := client.CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not CreateEventFilter() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
@@ -78,21 +62,18 @@ func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
 		return
 	}
+
 	sPrice, sVolume, sMin, sMax, err := client.CalculatePriceFromLogs(logs, baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not CalculatePriceFromLogs() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
 	}
 
-	bid, ask, err := client.GetSpread(baseToken, quoteToken)
-	if err != nil {
-		fmt.Printf("GetTokenPair] could not GetSpread() due to (%s)\n", err)
-	}
 	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
 	return
 }
 
-func GetSpread(w http.ResponseWriter, req *http.Request) {
+func GetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	baseToken := params["base"]
 	quoteToken := params["quote"]
@@ -102,36 +83,26 @@ func GetSpread(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying Bid/Ask Spread Failed")})
 		return
 	}
-	json.NewEncoder(w).Encode(Spread{bid,ask})
+	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
 }
 
-/*
-func GetTokenPrice(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	token := strings.ToUpper(params["token"])
-	if data, ok := TokenData[token]; !ok {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Invalid token name %s", token)})
-		return
-	} else {
-		json.NewEncoder(w).Encode(TokenPrice{data.TokenPair, data.Price})
-		return
-	}
+func GetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
+	//
 }
 
-func GetTokenVolume(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	token := strings.ToUpper(params["token"])
-	if data, ok := TokenData[token]; !ok {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Invalid token name %s", token)})
-		return
-	} else {
-		json.NewEncoder(w).Encode(TokenVolume{data.Id, data.Volume})
-		return
-	}
+func GetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
+	//
 }
-*/
 
 func GetVolume(w http.ResponseWriter, req *http.Request) {
+	//params := mux.Vars(req)
+	//iterate through all tokens in hashtable
+		//append volume
+	//encode to JSON
+	//return
+}
+
+func GetMarkets(w http.ResponseWriter, req *http.Request) {
 	//params := mux.Vars(req)
 	//iterate through all tokens in hashtable
 		//append volume
@@ -142,17 +113,16 @@ func GetVolume(w http.ResponseWriter, req *http.Request) {
 //Request Handler
 func InitAPIServer() {
 
-	router := mux.NewRouter()													//Create new router
+	router := mux.NewRouter()																	//Create new router
 
 	//API Endpoints
-	router.HandleFunc("/mkr/totalsupply", GetMkrTokenSupply).Methods("GET")		//REST endpoint for calling MKR token supply
-	//router.HandleFunc("/mkr/price", GetMkrTokenPrice).Methods("GET")			//REST endpoint for calling MKR token price
-	router.HandleFunc("/tokens/{base}/{quote}", GetTokenPair).Methods("GET")	//REST endpoint for calling token data
-	router.HandleFunc("/tokens/{base}/{quote}/spread", GetSpread).Methods("GET")	//REST endpoint for calling best bid and ask
-
-	//router.HandleFunc("/tokens/{token}/price", GetTokenPrice).Methods("GET")	//REST endpoint for calling price of token
-	//router.HandleFunc("/tokens/{token}/volume", GetTokenVolume).Methods("GET")	//REST endpoint for calling volume of token
-	//router.HandleFunc("/volume", GetVolume).Methods("GET")						//REST endpoint for calling volume of all tokens
+	router.HandleFunc("/v1/tokens/mkr/totalsupply", GetMkrTokenSupply).Methods("GET")			//REST endpoint for calling MKR token supply
+	router.HandleFunc("/v1/markets/{base}/{quote}", GetTokenPair).Methods("GET")				//REST endpoint for calling token pair data
+	router.HandleFunc("/v1/markets/{base}/{quote}/spread", GetTokenPairSpread).Methods("GET")			//REST endpoint for calling spread of token pair
+	router.HandleFunc("/v1/markets/{base}/{quote}/price", GetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/markets/{base}/{quote}/volume", GetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
+	router.HandleFunc("/v1/markets/volume", GetVolume).Methods("GET")							//REST endpoint for calling volume of all tokens
+	router.HandleFunc("/v1/markets", GetMarkets).Methods("GET")									//REST endpoint for calling tradable markets
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
 

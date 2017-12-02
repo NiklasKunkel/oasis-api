@@ -43,7 +43,7 @@ func AdjustIntForPrecision(i *big.Int, precision int) (*big.Float) {
 	f1.Quo(f1, f2)
 
 	//For debug purposes take this out later
-	fmt.Printf("%s", f1.Text('f', 8))
+	fmt.Printf("Adjusted Value = %s\n", f1.Text('f', 8))
 
 	return f1
 }

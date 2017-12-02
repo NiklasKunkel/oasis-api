@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	"github.com/onrik/ethrpc"
+	"github.com/niklaskunkel/oasis-api/data"
 	"github.com/niklaskunkel/oasis-api/parser"
 )
 
@@ -15,65 +16,6 @@ const (
 )
 
 var EthClient = ethrpc.NewEthRPC(HOST)
-
-var TokenInfoLib = map[string]tokenInfo{
-	"MKR": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
-		precision: 18},
-	"ETH": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
-		precision: 18},
-	"SAI": tokenInfo{
-		contract: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
-		precision: 18},
-	"DGD": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000e0b7927c4af23765cb51314a0e0521a9645f0e2a"),
-		precision: 9},
-	"RHOC": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
-		precision: 8},
-	"REP": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000e94327d07fc17907b4db788e5adf2ed424addff6"),
-		precision: 18},
-	"ICN": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000888666ca69e0f178ded6d75b5726cee99a87d698"),
-		precision: 18},
-	"1ST": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000af30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"),
-		precision: 18},
-	"GNT": tokenInfo{
-		contract: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
-		precision: 18},
-	"VSL": tokenInfo{
-		contract: strings.ToLower("0x0000000000000000000000005c543e7ae0a1104f78406c340e9c64fd9fce5170"),
-		precision: 18},
-	"PLU": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000d8912c10681d8b21fd3742244f44658dba12264e"),
-		precision: 18},
-	"MLN": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000beb9ef514a379b997e0798fdcc901ee474b6d9a1"),
-		precision: 18},
-	"NMR": tokenInfo{
-		contract: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
-		precision: 18},
-	"TIME": tokenInfo{
-		contract: strings.ToLower("0x0000000000000000000000006531f133e6deebe7f2dce5a0441aa7ef330b4e53"),
-		precision: 8},
-	"GUP": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000f7b098298f7c69fc14610bf71d5e02c60792894c"),
-		precision: 3},
-	"BAT": tokenInfo{
-		contract: strings.ToLower("0x0000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef"),
-		precision: 18},
-	"SNGLS": tokenInfo{
-		contract: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
-		precision: 0},
-}
-
-type tokenInfo struct {
-	contract string
-	precision int
-}
 
 func InitClient() {
 	for err := VerifyClientConnection(); err != nil; err = VerifyClientConnection() {
@@ -245,7 +187,7 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 	//Verify valid contract address(es)
 	for _, contractAddr := range address {
 		if (!strings.HasPrefix(contractAddr, "0x") || len(contractAddr) != 42) {
-			fmt.Errorf("[CreateEventsFilter] failed due to invalid contract address (%s)\n", contractAddr)
+			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventsFilter] failed due to invalid contract address (%s)\n", contractAddr)
 		}
 	}
 
@@ -355,12 +297,13 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	max := new(big.Float).SetInt(sumBaseVol)
  	min := new(big.Float).SetInt(sumBaseVol)	//Base Volume is used here to avoid instantiating new big.Int
 
-	baseTokenContract := TokenInfoLib[baseToken].contract
-	quoteTokenContract := TokenInfoLib[quoteToken].contract
+	baseTokenContract := data.TokenInfoLib[baseToken].Contract
+	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
 
 	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
 	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
+	foundLog := false
 	for i, log := range logs {
 		//fmt.Printf("\nParsing Event Log %d\n", i)
 		if (len(log.Topics) != 3) {
@@ -368,22 +311,35 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 			//skip log - this should never happen
 			continue
 		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
+			foundLog = true
 			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
 			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max)
 		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
+			foundLog = true
 			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
 			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max)
 		}
 	}
+	if (foundLog == false) {
+		//found no relevant logs for this trading pair
+		return "n/a", "0", "0", "0", nil
+	}
+
 	//Debug - print sum of trade quote and denom tokens
 	fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
 	fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
 
 	//Adjust for token precision
-	adjustedSumBaseVol := parser.AdjustIntForPrecision(sumBaseVol, TokenInfoLib[baseToken].precision)
-	adjustedSumQuoteVol := parser.AdjustIntForPrecision(sumQuoteVol, TokenInfoLib[quoteToken].precision)
+	adjustedSumBaseVol := parser.AdjustIntForPrecision(sumBaseVol, data.TokenInfoLib[baseToken].Precision)
+	adjustedSumQuoteVol := parser.AdjustIntForPrecision(sumQuoteVol, data.TokenInfoLib[quoteToken].Precision)
 	min = parser.AdjustFloatForPrecision(min, GetPrecisionDelta(baseToken, quoteToken))
 	max = parser.AdjustFloatForPrecision(max, GetPrecisionDelta(baseToken, quoteToken))
+
+	if (adjustedSumBaseVol == new(big.Float)) {
+		//cant divide by zero
+		//this should never happen due to foundLog check
+		return "n/a", "0", "0", "0", nil
+	}
 
 	//calculate volume weighted priced
 	price.Quo(adjustedSumQuoteVol, adjustedSumBaseVol)
@@ -417,9 +373,9 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	//construct calldata
 	switch otype {
 	case "ask":
-		calldata = "0x0374fc6f" + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:] + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:]
+		calldata = "0x0374fc6f" + data.TokenInfoLib[strings.ToUpper(baseToken)].Contract[2:] + data.TokenInfoLib[strings.ToUpper(quoteToken)].Contract[2:]
 	case "bid":
-		calldata = "0x0374fc6f" + TokenInfoLib[strings.ToUpper(quoteToken)].contract[2:] + TokenInfoLib[strings.ToUpper(baseToken)].contract[2:]
+		calldata = "0x0374fc6f" + data.TokenInfoLib[strings.ToUpper(quoteToken)].Contract[2:] + data.TokenInfoLib[strings.ToUpper(baseToken)].Contract[2:]
 	default:
 		return "", fmt.Errorf("[GetBestOffer] failed due to invalid order type param\n")
 	}
@@ -441,6 +397,11 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	if err != nil {
 		return "", fmt.Errorf("[GetBestOffer] failed to obtain offer id due to (%s)\n", err)
 	}
+	//no offer in this side of orderbook
+	if (offerid == "0x0000000000000000000000000000000000000000000000000000000000000000") {
+		return "n/a", nil
+	}
+
 	//debug 
 	fmt.Printf("Offer Id = %s\n", offerid)
 	//construct calldata
@@ -459,8 +420,6 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	if err != nil {
 		return "", fmt.Errorf("[GetBestOffer] failed to obtain offer due to (%s)\n", err)
 	}
-	//debug
-	fmt.Printf("Offer = %s\nLength of Offer is %d", offer, len(offer))
 
 	//Parse response into order amounts
 	var sQuoteTokenAmt string
@@ -489,8 +448,8 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	fmt.Printf("[PostHex2Int] Quote Token Amount = %s\n", intQuoteTokenAmt.Text(10))
 
 	//adjust for precision
-	adjustedBaseTokenAmt := parser.AdjustIntForPrecision(intBaseTokenAmt, TokenInfoLib[baseToken].precision)
-	adjustedQuoteTokenAmt := parser.AdjustIntForPrecision(intQuoteTokenAmt, TokenInfoLib[quoteToken].precision)
+	adjustedBaseTokenAmt := parser.AdjustIntForPrecision(intBaseTokenAmt, data.TokenInfoLib[baseToken].Precision)
+	adjustedQuoteTokenAmt := parser.AdjustIntForPrecision(intQuoteTokenAmt, data.TokenInfoLib[quoteToken].Precision)
 
 	//debug
 	fmt.Printf("[Post-AdjustIntForPrecision] Base Token Amount = %s\n", adjustedBaseTokenAmt.Text('f', 8))
@@ -510,5 +469,5 @@ func LatestBlockNumber() (int) {
 }
 
 func GetPrecisionDelta(baseToken string, quoteToken string) (int) {
-	return TokenInfoLib[quoteToken].precision - TokenInfoLib[baseToken].precision
+	return data.TokenInfoLib[quoteToken].Precision - data.TokenInfoLib[baseToken].Precision
 }
