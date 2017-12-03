@@ -239,11 +239,6 @@ func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
 		return []ethrpc.Log{}, fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
 	}
 	fmt.Printf("\n[GetLog] Event Logs\n")
-	/*
-	for _, log := range logs {
-		fmt.Printf("%+v\n", log)
-	}
-	*/
 	return logs, nil
 }
 
@@ -322,7 +317,7 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	}
 	if (foundLog == false) {
 		//found no relevant logs for this trading pair
-		return "n/a", "0", "0", "0", nil
+		return "null", "0", "null", "null", nil
 	}
 
 	//Debug - print sum of trade quote and denom tokens
@@ -338,7 +333,7 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	if (adjustedSumBaseVol == new(big.Float)) {
 		//cant divide by zero
 		//this should never happen due to foundLog check
-		return "n/a", "0", "0", "0", nil
+		return "null", "0", "null", "null", nil
 	}
 
 	//calculate volume weighted priced
@@ -399,7 +394,7 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	}
 	//no offer in this side of orderbook
 	if (offerid == "0x0000000000000000000000000000000000000000000000000000000000000000") {
-		return "n/a", nil
+		return "null", nil
 	}
 
 	//debug 
@@ -461,7 +456,38 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	return fBestOffer.Text('f', 8), nil
 }
 
-//function getBestOffer(ERC20 sell_gem, ERC20 buy_gem) public constant returns(uint)
+func GetMarkets() ([]data.Market) {
+	//loop through each market in static data
+	for index, market := range data.LiveMarkets {
+		//construct calldata
+		baseTokenAddress := data.TokenInfoLib[market.Base].Contract
+		quoteTokenAddress := data.TokenInfoLib[market.Quote].Contract
+		calldata := "0x8d7daf95" + baseTokenAddress[2:] + quoteTokenAddress[2:]
+		//create transaction
+		tx := CreateTx(
+			"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+			"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+			0,
+			big.NewInt(0),
+			big.NewInt(0),
+			calldata,
+			0)
+		//check if market is active
+		status, err := CallTx(tx)
+		if err != nil {
+			fmt.Printf("[GetMarkets] failed to query whitelist status of baseToken: %s and quoteToken: %s\n due to %s", market.Base, market.Quote, err)
+		}
+		//update market status
+		if (status == "0x0000000000000000000000000000000000000000000000000000000000000001") {
+			data.LiveMarkets[index].Active = true
+		} else {
+			data.LiveMarkets[index].Active = false
+		}
+		//update timestamp
+		data.LiveMarkets[index].Time = time.Now().Unix()
+	}
+	return data.LiveMarkets
+}
 
 func LatestBlockNumber() (int) {
 	latest, _ := EthClient.EthBlockNumber()

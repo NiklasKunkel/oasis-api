@@ -4,7 +4,7 @@ import (
 "strings"
 )
 
-type market struct{
+type Market struct{
 	Pair 	string 	`json:"pair,omitempty"`
 	Base	string 	`json:"base,omitempty"`
 	Quote 	string 	`json:"quote,omitempty"`
@@ -14,8 +14,8 @@ type market struct{
 	Time 	int64 	`json:"time,omitempty"`
 }
 
-var static_markets = []market{
-	market{
+var LiveMarkets = []Market{
+	Market{
 		"MKR/ETH",
 		"MKR",
 		"ETH",
@@ -23,7 +23,7 @@ var static_markets = []market{
 		"18",
 		true,
 		0},
-	market{
+	Market{
 		"MKR/SAI",
 		"MKR",
 		"SAI",
@@ -31,7 +31,7 @@ var static_markets = []market{
 		"18",
 		true,
 		0},
-	market{
+	Market{
 		"ETH/SAI",
 		"ETH",
 		"SAI",
@@ -39,82 +39,122 @@ var static_markets = []market{
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"DGD/ETH",
+		"DGD",
+		"ETH",
+		"9",
+		"18",
+		true,
+		0},
+	Market{
+		"GNT/ETH",
+		"GNT",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"REP/ETH",
+		"REP",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"ICN/ETH",
+		"ICN",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"1ST/ETH",
+		"1ST",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"SNGLS/ETH",
+		"SNGLS",
+		"ETH",
+		"0",
+		"18",
+		true,
+		0},
+	Market{
+		"VSL/ETH",
+		"VSL",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"PLU/ETH",
+		"PLU",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"MLN/ETH",
+		"MLN",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	Market{
+		"RHOC/ETH",
+		"RHOC",
+		"ETH",
+		"8",
+		"18",
+		true,
+		0},
+	Market{
+		"TIME/ETH",
+		"TIME",
+		"ETH",
+		"8",
+		"18",
+		true,
+		0},
+	Market{
+		"GUP/ETH",
+		"GUP",
+		"ETH",
+		"3",
+		"18",
+		true,
+		0},
+	Market{
+		"BAT/ETH",
+		"BAT",
+		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+	/*Market{
+		"NMR/ETH",
+		"NMR",
+		"ETH",
 		"18",
 		"18",
 		true,
-		0},
-	market{
-		"MKR/SAI",
-		"MKR",
-		"SAI",
+		0},*/
+	Market{
+		"RDN/ETH",
+		"RDN",
+		"ETH",
 		"18",
 		"18",
 		true,
@@ -178,4 +218,7 @@ var TokenInfoLib = map[string]tokenInfo{
 	"SNGLS": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
 		Precision: 0},
+	"RDN": tokenInfo{
+		Contract: strings.ToLower("0x000000000000000000000000255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6"),
+		Precision: 18},
 }

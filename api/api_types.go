@@ -3,7 +3,7 @@ package api
 import (
 )
 
-type market struct{
+type Market struct{
 	Pair 	string 	`json:"pair,omitempty"`
 	Base	string 	`json:"base,omitempty"`
 	Quote 	string 	`json:"quote,omitempty"`
@@ -13,7 +13,7 @@ type market struct{
 	Time 	int64 	`json:"time,omitempty"`
 }
 
-type Markets []market
+type Markets []Market
 
 type MkrTokenSupply struct {
 	//TotalSupply 	*big.Float	`json:"totalSupply, omitempty"`

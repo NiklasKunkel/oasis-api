@@ -35,6 +35,11 @@ func GetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
+func GetMarkets(w http.ResponseWriter, req *http.Request) {
+	marketStatus := client.GetMarkets()
+	json.NewEncoder(w).Encode(marketStatus)
+}
+
 //Get All Token Data 
 func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req) 
@@ -95,14 +100,6 @@ func GetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetVolume(w http.ResponseWriter, req *http.Request) {
-	//params := mux.Vars(req)
-	//iterate through all tokens in hashtable
-		//append volume
-	//encode to JSON
-	//return
-}
-
-func GetMarkets(w http.ResponseWriter, req *http.Request) {
 	//params := mux.Vars(req)
 	//iterate through all tokens in hashtable
 		//append volume
