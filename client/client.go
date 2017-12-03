@@ -194,9 +194,17 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 	//Verify topics
 
 	//Compose Filter Params Object
+	/*
 	params := ethrpc.FilterParams{
 		FromBlock: strconv.Itoa(fromBlockNum),
 		ToBlock: strconv.Itoa(toBlockNum),
+		Address: address,
+		Topics: topics,
+	}
+	*/
+	params := ethrpc.FilterParams{
+		FromBlock: "0x" + strconv.FormatInt(int64(fromBlockNum), 16),
+		ToBlock: "0x" + strconv.FormatInt(int64(toBlockNum), 16),
 		Address: address,
 		Topics: topics,
 	}
@@ -226,10 +234,6 @@ func GetFilterLogs(filterId string) ([]ethrpc.Log, error) {
 	if err != nil {
 		return []ethrpc.Log{}, fmt.Errorf("[GetFilterLogs] failed due to (%s)\n", err)
 	}
-	fmt.Printf("\n[GetFilterLogs] Event Logs:\n")
-	for _, log := range logs {
-		fmt.Printf("%+v", log)
-	}
 	return logs, err
 }
 
@@ -238,7 +242,6 @@ func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
 	if err != nil {
 		return []ethrpc.Log{}, fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
 	}
-	fmt.Printf("\n[GetLog] Event Logs\n")
 	return logs, nil
 }
 
