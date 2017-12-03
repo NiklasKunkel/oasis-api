@@ -191,17 +191,6 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 		}
 	}
 
-	//Verify topics
-
-	//Compose Filter Params Object
-	/*
-	params := ethrpc.FilterParams{
-		FromBlock: strconv.Itoa(fromBlockNum),
-		ToBlock: strconv.Itoa(toBlockNum),
-		Address: address,
-		Topics: topics,
-	}
-	*/
 	params := ethrpc.FilterParams{
 		FromBlock: "0x" + strconv.FormatInt(int64(fromBlockNum), 16),
 		ToBlock: "0x" + strconv.FormatInt(int64(toBlockNum), 16),
@@ -509,6 +498,16 @@ func GetMkrTokenSupply() (string, error) {
 		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
 		return fSupply.Text('f',0), nil
 	}
+}
+
+func IsValidTokenPair(tokenPair string) (bool) {
+	var upperTokenPair = strings.ToUpper(tokenPair)
+	for _, pairInfo := range data.LiveMarkets {
+		if pairInfo.Pair == upperTokenPair {
+			return true
+		}
+	}
+	return false
 }
 
 func LatestBlockNumber() (int) {

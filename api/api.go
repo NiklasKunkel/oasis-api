@@ -34,20 +34,29 @@ func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 	quoteToken := strings.ToUpper(params["quote"])
 	tokenPair := baseToken + string('/') + quoteToken
 
-	//need to check that tokenPair is in supported tokens list
+	//Verify that token pair is supported by oasisdex
+	if (!client.IsValidTokenPair(tokenPair)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
+		return
+	}
 
+	//get bid/ask spread
 	bid, ask, err := client.GetSpread(baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("GetTokenPair] could not GetSpread() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+		return
 	}
 
+	//create event filter
 	filter, err := client.CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not CreateEventFilter() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
 		return
 	}
+
+	//get all events from last 24 hour interval
 	logs, err := client.GetLogs(filter)
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not GetLogs() due to (%s)\n", err)
@@ -55,10 +64,12 @@ func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//calculate price, volume, min, and max from event logs
 	sPrice, sVolume, sMin, sMax, err := client.CalculatePriceFromLogs(logs, baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not CalculatePriceFromLogs() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+		return
 	}
 
 	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
@@ -69,6 +80,11 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	baseToken := params["base"]
 	quoteToken := params["quote"]
+
+	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
+		return
+	}
 	bid, ask, err := client.GetSpread(baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("[GetBidAskSpread] failed due to (%s)\n", err)
