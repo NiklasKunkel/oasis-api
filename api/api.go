@@ -5,43 +5,30 @@ import (
 	"fmt"
 	"net/http"
 	"log"
-	"math/big"
 	"strings"
 	"time"
 	"github.com/gorilla/mux"
 	"github.com/niklaskunkel/oasis-api/client"
-	"github.com/niklaskunkel/oasis-api/parser"
 )
 
 //Get MKR Token Supply
-func GetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
-	tx := client.CreateTx(
-		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0xc66ea802717bfb9833400264dd12c2bceaa34a6d",
-		0,
-		big.NewInt(0),
-		big.NewInt(0),
-		"0x18160ddd",
-		0)
-	hSupply, err := client.CallTx(tx)
-	fmt.Printf(hSupply)
+func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
+	supply, err := client.GetMkrTokenSupply()
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR Token Supply Failed")})
 	} else {
-		iSupply := parser.Hex2Int(hSupply)
-		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
-		json.NewEncoder(w).Encode(MkrTokenSupply{fSupply.Text('f', 0)})
+		json.NewEncoder(w).Encode(MkrTokenSupply{supply})
 	}
 	return
 }
 
-func GetMarkets(w http.ResponseWriter, req *http.Request) {
+func APIGetMarkets(w http.ResponseWriter, req *http.Request) {
 	marketStatus := client.GetMarkets()
 	json.NewEncoder(w).Encode(marketStatus)
 }
 
 //Get All Token Data 
-func GetTokenPair(w http.ResponseWriter, req *http.Request) {
+func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req) 
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -78,7 +65,7 @@ func GetTokenPair(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func GetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
+func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	baseToken := params["base"]
 	quoteToken := params["quote"]
@@ -91,15 +78,15 @@ func GetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
 }
 
-func GetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
+func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
 	//
 }
 
-func GetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
+func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
 	//
 }
 
-func GetVolume(w http.ResponseWriter, req *http.Request) {
+func APIGetVolume(w http.ResponseWriter, req *http.Request) {
 	//params := mux.Vars(req)
 	//iterate through all tokens in hashtable
 		//append volume
@@ -110,18 +97,18 @@ func GetVolume(w http.ResponseWriter, req *http.Request) {
 //Request Handler
 func InitAPIServer() {
 
-	router := mux.NewRouter()																	//Create new router
+	router := mux.NewRouter()																		//Create new router
 
 	//API Endpoints
-	router.HandleFunc("/v1/tokens/mkr/totalsupply", GetMkrTokenSupply).Methods("GET")			//REST endpoint for calling MKR token supply
-	router.HandleFunc("/v1/markets/{base}/{quote}", GetTokenPair).Methods("GET")				//REST endpoint for calling token pair data
-	router.HandleFunc("/v1/markets/{base}/{quote}/spread", GetTokenPairSpread).Methods("GET")			//REST endpoint for calling spread of token pair
-	router.HandleFunc("/v1/markets/{base}/{quote}/price", GetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
-	router.HandleFunc("/v1/markets/{base}/{quote}/volume", GetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
-	router.HandleFunc("/v1/markets/volume", GetVolume).Methods("GET")							//REST endpoint for calling volume of all tokens
-	router.HandleFunc("/v1/markets", GetMarkets).Methods("GET")									//REST endpoint for calling tradable markets
+	router.HandleFunc("/v1/tokens/mkr/totalsupply", APIGetMkrTokenSupply).Methods("GET")			//REST endpoint for calling MKR token supply
+	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPair).Methods("GET")					//REST endpoint for calling token pair data
+	router.HandleFunc("/v1/markets/{base}/{quote}/spread", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
+	router.HandleFunc("/v1/markets/{base}/{quote}/price", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/markets/{base}/{quote}/volume", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
+	router.HandleFunc("/v1/markets/volume", APIGetVolume).Methods("GET")							//REST endpoint for calling volume of all tokens
+	router.HandleFunc("/v1/markets", APIGetMarkets).Methods("GET")									//REST endpoint for calling tradable markets
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
 
-	log.Fatal(http.ListenAndServe(":12345", router))							//Deploy server
+	log.Fatal(http.ListenAndServe(":12345", router))												//Deploy server
 }

@@ -489,6 +489,25 @@ func GetMarkets() ([]data.Market) {
 	return data.LiveMarkets
 }
 
+func GetMkrTokenSupply() (string, error) {
+	tx := CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0xc66ea802717bfb9833400264dd12c2bceaa34a6d",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		"0x18160ddd",
+		0)
+	hSupply, err := CallTx(tx)	//get supply in hex string format
+	if err != nil {
+		return "", fmt.Errorf("[GetMkrTokenSupply] failed to query supply due to error (%s)\n", err)
+	} else {
+		iSupply := parser.Hex2Int(hSupply)
+		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
+		return fSupply.Text('f',0), nil
+	}
+}
+
 func LatestBlockNumber() (int) {
 	latest, _ := EthClient.EthBlockNumber()
 	return latest

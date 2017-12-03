@@ -3,21 +3,17 @@ package parser
 import (
 	"fmt"
 	"math/big"
-	//"strings"
+	"strings"
 )
 
 //Convert hexadecimal strings into integers
 func Hex2Int(hexStr string) (*big.Int) {
 	//remove 0x prefix
-	//cleaned := strings.Replace(hexStr, "0x", "", -1)
+	cleaned := strings.Replace(hexStr, "0x", "", -1)
 
 	//parse string to int
 	result := new(big.Int)
-	result, _ = result.SetString(hexStr, 16)
-
-	//For debug purposes take this out later
-	fmt.Println(result)
-	
+	result, _ = result.SetString(cleaned, 16)
 	return result
 }
 
