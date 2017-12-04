@@ -257,7 +257,6 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 	fmt.Printf("baseVol for log %d = %s\n", index, sBaseVol)
 	fmt.Printf("quoteVol for log %d = %s\n", index, sQuoteVol)
 
-
 	intVol = parser.Hex2Int(sBaseVol)		//convert base token volume from hex string to integer
 	sumBaseVol.Add(sumBaseVol, intVol)		//add base token volume to cumulative base Volume
 	fBaseVol.SetInt(intVol)					//convert base token volume from integer to float
@@ -484,6 +483,67 @@ func GetMarkets() ([]data.Market) {
 		data.LiveMarkets[index].Time = time.Now().Unix()
 	}
 	return data.LiveMarkets
+}
+
+func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
+	iSumBaseVol := new(big.Int)
+
+	baseTokenContract := data.TokenInfoLib[baseToken].Contract
+	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
+
+	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
+	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
+
+	//create event filter
+	filter, err := CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	if err != nil {
+		return "null", fmt.Errorf("[GetTokenPair] could not CreateEventFilter() due to (%s)\n", err)
+	}
+
+	//get all events from last 24 hour interval
+	logs, err := GetLogs(filter)
+	if err != nil {
+		return "null", fmt.Errorf("[GetTokenPair] could not GetLogs() due to (%s)\n", err)
+	}
+
+	atLeastOneRelevantLog := false
+	for _, log := range logs {
+		if (len(log.Topics) != 3) {
+			fmt.Println("Skipped Log")
+			//skip log - this should never happen
+			continue
+		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
+			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
+			sBaseVol := log.Data[2:66]
+			iSumBaseVol.Add(iSumBaseVol, parser.Hex2Int(sBaseVol))
+			if (!atLeastOneRelevantLog) {
+				atLeastOneRelevantLog = true
+			}
+		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
+			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
+			sBaseVol := log.Data[67:130]
+			iSumBaseVol.Add(iSumBaseVol, parser.Hex2Int(sBaseVol))
+			if (!atLeastOneRelevantLog) {
+				atLeastOneRelevantLog = true
+			}
+		}
+	}
+	if (atLeastOneRelevantLog == false) {
+		//found no relevant logs for this trading pair
+		return "0", nil
+	}
+
+	//Adjust for token precision
+	adjustedBaseVol := parser.AdjustIntForPrecision(iSumBaseVol, data.TokenInfoLib[baseToken].Precision)
+
+	if (adjustedBaseVol == new(big.Float)) {
+		return "0", nil
+	}
+
+	//Debug - print volume weighted price
+	fmt.Printf("Volume = %s\n", adjustedBaseVol.Text('f', 8))
+
+	return adjustedBaseVol.Text('f', 8), nil
 }
 
 func GetMkrTokenSupply() (string, error) {

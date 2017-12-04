@@ -36,7 +36,7 @@ func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 
 	//Verify that token pair is supported by oasisdex
 	if (!client.IsValidTokenPair(tokenPair)) {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown pair")})
 		return
 	}
 
@@ -99,7 +99,20 @@ func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
-	//
+	params := mux.Vars(req)
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
+	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
+		return
+	}
+	vol, err := client.GetTokenPairVolume(baseToken, quoteToken)
+	if err != nil {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying Volume Failed")})
+		return
+	}
+	json.NewEncoder(w).Encode(TokenPairVolume{vol, time.Now().Unix()})
+	return
 }
 
 func APIGetVolume(w http.ResponseWriter, req *http.Request) {

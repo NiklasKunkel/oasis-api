@@ -36,15 +36,14 @@ type TokenPairSpread struct {
 }
 
 type TokenPairPrice struct {
-	TokenPair	string	`json:"tokenPair,omitempty"`
 	Price 		string	`json:"price,omitempty"`
 }
 
 type TokenPairVolume struct {
-	TokenPair 	string 	`json:"tokenPair,omitempty"`
 	Volume 		string	`json:"volume,omitempty"`
+	Time 		int64 	`json:"time,omitempty"`
 }
 
 type Error struct {
-	Error 		string	`json:"error"`
+	Message 	string	`json:"message"`
 }
