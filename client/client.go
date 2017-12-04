@@ -234,14 +234,13 @@ func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
 	return logs, nil
 }
 
-func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol *big.Int, sumQuoteVol *big.Int, min *big.Float, max *big.Float) {
+func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol *big.Int, sumQuoteVol *big.Int, min *big.Float, max *big.Float, lastPrice *big.Float) {
 	var sQuoteVol string
 	var sBaseVol string
 	intVol := new(big.Int)
 	fBaseVol := new(big.Float)
 	fQuoteVol := new(big.Float)
 	fPrice := new(big.Float)
-
 
 	if (len(log.Data) != 130) {
 		fmt.Printf("Error: Log Data field should be 130 chars. Data field = %s", log.Data)
@@ -268,6 +267,7 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 	fQuoteVol.SetInt(intVol)				//convert quote token volume from integer to float
 
 	fPrice.Quo(fQuoteVol, fBaseVol)			//calculate price of base token in reference to quote token
+	lastPrice.Set(fPrice)					//set lastPrice parameter
 	if ((min.Cmp(fPrice) == 1) || (min.Sign() == 0)) { //if price is lower than minimum price
 		min.Set(fPrice)						//set new minimum price
 	}
@@ -277,12 +277,13 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 
 }
 
-func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, error) {
+func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
 	sumBaseVol := big.NewInt(0)
 	sumQuoteVol := big.NewInt(0)
 	price := new(big.Float)
 	max := new(big.Float).SetInt(sumBaseVol)
- 	min := new(big.Float).SetInt(sumBaseVol)	//Base Volume is used here to avoid instantiating new big.Int
+ 	min := new(big.Float).SetInt(sumBaseVol)
+ 	lastPrice := new(big.Float).SetInt(sumBaseVol)
 
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
@@ -290,26 +291,29 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
 	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
-	foundLog := false
+	atLeastOneRelevantLog := false
 	for i, log := range logs {
-		//fmt.Printf("\nParsing Event Log %d\n", i)
 		if (len(log.Topics) != 3) {
 			fmt.Println("Skipped Log")
 			//skip log - this should never happen
 			continue
 		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
-			foundLog = true
 			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
-			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max)
+			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max, lastPrice)
+			if (atLeastOneRelevantLog == false) {
+				atLeastOneRelevantLog = true
+			}
 		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
-			foundLog = true
 			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
-			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max)
+			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max, lastPrice)
+			if (atLeastOneRelevantLog == false) {
+				atLeastOneRelevantLog = true
+			}
 		}
 	}
-	if (foundLog == false) {
+	if (atLeastOneRelevantLog == false) {
 		//found no relevant logs for this trading pair
-		return "null", "0", "null", "null", nil
+		return "null", "null", "0", "null", "null", nil
 	}
 
 	//Debug - print sum of trade quote and denom tokens
@@ -324,8 +328,8 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 
 	if (adjustedSumBaseVol == new(big.Float)) {
 		//cant divide by zero
-		//this should never happen due to foundLog check
-		return "null", "0", "null", "null", nil
+		//this should never happen due to isFirstLog check earlier
+		return "null", "null", "0", "null", "null", nil
 	}
 
 	//calculate volume weighted priced
@@ -336,8 +340,9 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	fmt.Printf("Volume = %s\n", adjustedSumBaseVol.Text('f', 8))
 	fmt.Printf("Max price = %s\n", max.Text('f', 8))
 	fmt.Printf("Min price = %s\n", min.Text('f', 8))
+	fmt.Printf("Last Price = %s\n", lastPrice.Text('f', 8))
 
-	return price.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
+	return price.Text('f', 8), lastPrice.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
 }
 
 func GetSpread(baseToken string, quoteToken string) (string, string, error) {

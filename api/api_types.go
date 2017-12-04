@@ -1,8 +1,5 @@
 package api
 
-import (
-)
-
 type Market struct{
 	Pair 	string 	`json:"pair,omitempty"`
 	Base	string 	`json:"base,omitempty"`
@@ -20,13 +17,10 @@ type MkrTokenSupply struct {
 	TotalSupply 	string	`json:"totalSupply,omitempty"`
 }
 
-type MkrTokenPrice struct {
-	Price 			string	`json:"price,omitempty"`
-}
-
 type TokenPair struct {
 	TokenPair	string	`json:"pair,omitempty"`
 	Price 		string	`json:"price,omitempty"`
+	LastPrice	string	`json:"last,omitempty"`
 	Volume 		string	`json:"vol,omitempty"`
 	LowestAsk 	string	`json:"ask,omitempty"`
 	HighestBid 	string	`json:"bid,omitempty"`

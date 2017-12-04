@@ -65,14 +65,14 @@ func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 	}
 
 	//calculate price, volume, min, and max from event logs
-	sPrice, sVolume, sMin, sMax, err := client.CalculatePriceFromLogs(logs, baseToken, quoteToken)
+	sPrice, sLast, sVolume, sMin, sMax, err := client.CalculatePriceFromLogs(logs, baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("[GetTokenPair] could not CalculatePriceFromLogs() due to (%s)\n", err)
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
 		return
 	}
 
-	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
+	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sLast, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
 	return
 }
 
