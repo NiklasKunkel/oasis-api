@@ -497,13 +497,13 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	//create event filter
 	filter, err := CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
-		return "null", fmt.Errorf("[GetTokenPair] could not CreateEventFilter() due to (%s)\n", err)
+		return "null", fmt.Errorf("[GetTokenPairVolume] could not CreateEventFilter() due to (%s)\n", err)
 	}
 
 	//get all events from last 24 hour interval
 	logs, err := GetLogs(filter)
 	if err != nil {
-		return "null", fmt.Errorf("[GetTokenPair] could not GetLogs() due to (%s)\n", err)
+		return "null", fmt.Errorf("[GetTokenPairVolume] could not GetLogs() due to (%s)\n", err)
 	}
 
 	atLeastOneRelevantLog := false

@@ -143,14 +143,14 @@ var LiveMarkets = []Market{
 		"18",
 		true,
 		0},
-	/*Market{
+	Market{
 		"NMR/ETH",
 		"NMR",
 		"ETH",
 		"18",
 		"18",
 		true,
-		0},*/
+		0},
 	Market{
 		"RDN/ETH",
 		"RDN",

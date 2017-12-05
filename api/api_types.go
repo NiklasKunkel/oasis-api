@@ -13,7 +13,6 @@ type Market struct{
 type Markets []Market
 
 type MkrTokenSupply struct {
-	//TotalSupply 	*big.Float	`json:"totalSupply, omitempty"`
 	TotalSupply 	string	`json:"totalSupply,omitempty"`
 }
 
@@ -40,8 +39,13 @@ type TokenPairPrice struct {
 }
 
 type TokenPairVolume struct {
-	Volume 		string	`json:"volume,omitempty"`
+	Volume 		string	`json:"vol,omitempty"`
 	Time 		int64 	`json:"time,omitempty"`
+}
+
+type AllVolumes struct {
+	Volumes 	map[string]string	`json:"volumes,omitmepty"`
+	Time 		int64 				`json:"time,omitempty"`
 }
 
 type Error struct {
