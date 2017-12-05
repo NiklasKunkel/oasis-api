@@ -452,12 +452,12 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	return fBestOffer.Text('f', 8), nil
 }
 
-func GetMarkets() ([]data.Market) {
+func GetMarkets() (map[string]*data.Market) {
 	//loop through each market in static data
-	for index, market := range data.LiveMarkets {
+	for tokenPair, marketData := range data.LiveMarkets {
 		//construct calldata
-		baseTokenAddress := data.TokenInfoLib[market.Base].Contract
-		quoteTokenAddress := data.TokenInfoLib[market.Quote].Contract
+		baseTokenAddress := data.TokenInfoLib[marketData.Base].Contract
+		quoteTokenAddress := data.TokenInfoLib[marketData.Quote].Contract
 		calldata := "0x8d7daf95" + baseTokenAddress[2:] + quoteTokenAddress[2:]
 		//create transaction
 		tx := CreateTx(
@@ -471,19 +471,26 @@ func GetMarkets() ([]data.Market) {
 		//check if market is active
 		status, err := CallTx(tx)
 		if err != nil {
-			fmt.Printf("[GetMarkets] failed to query whitelist status of baseToken: %s and quoteToken: %s\n due to %s", market.Base, market.Quote, err)
+			fmt.Printf("[GetMarkets] failed to query whitelist status of baseToken: %s and quoteToken: %s\n due to %s", marketData.Base, marketData.Quote, err)
 		}
 		//update market status
 		if (status == "0x0000000000000000000000000000000000000000000000000000000000000001") {
-			data.LiveMarkets[index].Active = true
+			data.LiveMarkets[tokenPair].Active = true
 		} else {
-			data.LiveMarkets[index].Active = false
+			data.LiveMarkets[tokenPair].Active = false
 		}
 		//update timestamp
-		data.LiveMarkets[index].Time = time.Now().Unix()
+		data.LiveMarkets[tokenPair].Time = time.Now().Unix()
 	}
 	return data.LiveMarkets
 }
+
+/*
+func GetMarket(baseToken string, quoteToken string) (string, error) {
+
+	data.LiveMarkets[strings.ToUpper(baseToken) + "/" + strings.ToUpper(quoteToken)]
+}
+*/
 
 func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	iSumBaseVol := new(big.Int)
@@ -567,8 +574,8 @@ func GetMkrTokenSupply() (string, error) {
 
 func IsValidTokenPair(tokenPair string) (bool) {
 	var upperTokenPair = strings.ToUpper(tokenPair)
-	for _, pairInfo := range data.LiveMarkets {
-		if pairInfo.Pair == upperTokenPair {
+	for pair, _ := range data.LiveMarkets {
+		if pair == upperTokenPair {
 			return true
 		}
 	}

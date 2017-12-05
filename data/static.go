@@ -5,7 +5,6 @@ import (
 )
 
 type Market struct{
-	Pair 	string 	`json:"pair,omitempty"`
 	Base	string 	`json:"base,omitempty"`
 	Quote 	string 	`json:"quote,omitempty"`
 	BasePrecision 	string 	`json:"basePrecision,omitempty"`
@@ -14,145 +13,129 @@ type Market struct{
 	Time 	int64 	`json:"time,omitempty"`
 }
 
-var LiveMarkets = []Market{
-	Market{
-		"MKR/ETH",
+//type Markets map[string]*Market
+
+var LiveMarkets = map[string]*Market{
+	"MKR/ETH": &Market{
 		"MKR",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"MKR/SAI",
+	"MKR/SAI": &Market{
 		"MKR",
 		"SAI",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"ETH/SAI",
+	"ETH/SAI": &Market{
 		"ETH",
 		"SAI",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"DGD/ETH",
+	"DGD/ETH": &Market{
 		"DGD",
 		"ETH",
 		"9",
 		"18",
 		true,
 		0},
-	Market{
-		"GNT/ETH",
+	"GNT/ETH": &Market{
 		"GNT",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"REP/ETH",
+	"REP/ETH": &Market{
 		"REP",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"ICN/ETH",
+	"ICN/ETH": &Market{
 		"ICN",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"1ST/ETH",
+	"1ST/ETH": &Market{
 		"1ST",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"SNGLS/ETH",
+	"SNGLS/ETH": &Market{
 		"SNGLS",
 		"ETH",
 		"0",
 		"18",
 		true,
 		0},
-	Market{
-		"VSL/ETH",
+	"VSL/ETH": &Market{
 		"VSL",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"PLU/ETH",
+	"PLU/ETH": &Market{
 		"PLU",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"MLN/ETH",
+	"MLN/ETH": &Market{
 		"MLN",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"RHOC/ETH",
+	"RHOC/ETH": &Market{
 		"RHOC",
 		"ETH",
 		"8",
 		"18",
 		true,
 		0},
-	Market{
-		"TIME/ETH",
+	"TIME/ETH": &Market{
 		"TIME",
 		"ETH",
 		"8",
 		"18",
 		true,
 		0},
-	Market{
-		"GUP/ETH",
+	"GUP/ETH": &Market{
 		"GUP",
 		"ETH",
 		"3",
 		"18",
 		true,
 		0},
-	Market{
-		"BAT/ETH",
+	"BAT/ETH": &Market{
 		"BAT",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"NMR/ETH",
+	"NMR/ETH": &Market{
 		"NMR",
 		"ETH",
 		"18",
 		"18",
 		true,
 		0},
-	Market{
-		"RDN/ETH",
+	"RDN/ETH": &Market{
 		"RDN",
 		"ETH",
 		"18",

@@ -118,13 +118,12 @@ func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
 
 func APIGetVolume(w http.ResponseWriter, req *http.Request) {
 	allVolumes := AllVolumes{make(map[string]string), time.Now().Unix()}
-	for _, tokenPair := range data.LiveMarkets {
-		fmt.Printf("Token Pair = %s\n", tokenPair.Pair)
-		vol, err := client.GetTokenPairVolume(tokenPair.Base, tokenPair.Quote)
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		vol, err := client.GetTokenPairVolume(tokenPairInfo.Base, tokenPairInfo.Quote)
 		if err != nil {
 			vol = "null"
 		}
-		allVolumes.Volumes[tokenPair.Pair] = vol
+		allVolumes.Volumes[tokenPair] = vol
 	}
 	json.NewEncoder(w).Encode(allVolumes)
 }
@@ -145,12 +144,12 @@ func InitAPIServer() {
 	//API Endpoints
 	router.HandleFunc("/v1/markets", APIGetMarkets).Methods("GET")							//REST endpoint for calling tradable markets
 	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPair).Methods("GET")			//REST endpoint for calling token pair data
-	router.HandleFunc("/v1/spread", APIGetSpread).Methods("GET")							//REST endpoint for calling spread of all token pairs
-	router.HandleFunc("/v1/spread/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
-	router.HandleFunc("/v1/volume", APIGetVolume).Methods("GET")							//REST endpoint for calling volume of all token pairs
-	router.HandleFunc("/v1/volume/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
 	router.HandleFunc("/v1/price", APIGetPrice).Methods("GET")								//REST endpoint for calling price of all token pairs
 	router.HandleFunc("/v1/price/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/volume", APIGetVolume).Methods("GET")							//REST endpoint for calling volume of all token pairs
+	router.HandleFunc("/v1/volume/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
+	router.HandleFunc("/v1/spread", APIGetSpread).Methods("GET")							//REST endpoint for calling spread of all token pairs
+	router.HandleFunc("/v1/spread/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
 	router.HandleFunc("/v1/tokens/mkr/totalsupply", APIGetMkrTokenSupply).Methods("GET")	//REST endpoint for calling MKR token supply
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
