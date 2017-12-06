@@ -1,6 +1,7 @@
 package api
 
-type Market struct{
+/*
+type Pair struct{
 	Pair 	string 	`json:"pair,omitempty"`
 	Base	string 	`json:"base,omitempty"`
 	Quote 	string 	`json:"quote,omitempty"`
@@ -9,12 +10,9 @@ type Market struct{
 	Active 	bool 	`json:"active,omitempty"`
 	Time 	int64 	`json:"time,omitempty"`
 }
+*/
 
-type MkrTokenSupply struct {
-	TotalSupply 	string	`json:"totalSupply,omitempty"`
-}
-
-type TokenPair struct {
+type Market struct {
 	TokenPair	string	`json:"pair,omitempty"`
 	Price 		string	`json:"price,omitempty"`
 	LastPrice	string	`json:"last,omitempty"`
@@ -27,11 +25,14 @@ type TokenPair struct {
 	LastUpdated	int64	`json:"time,omitempty"`
 }
 
+type AllMarkets map[string]Market
+
 type TokenPairSpread struct {
 	Bid 	string 	`json:"bid,omitempty"`
 	Ask 	string 	`json:"ask,omitempty"`
 }
 
+//change this type AllSpread map[string]*TokenPairSpread to fix bug
 type AllSpreads struct {
 	Spreads 	map[string]*TokenPairSpread `json:"spreads,omitempty"`
 	Time 		int64 	`json:"time,omitempty"`
@@ -42,6 +43,11 @@ type TokenPairPrice struct {
 	Price 		string	`json:"price,omitempty"`
 }
 
+type AllPrices struct {
+	Prices 	map[string]*TokenPairPrice	`json:"prices,omitempty"`
+	Time 	int64 	`json:"time,omitempty"`
+}
+
 type TokenPairVolume struct {
 	Volume 		string	`json:"vol,omitempty"`
 	Time 		int64 	`json:"time,omitempty"`
@@ -50,6 +56,10 @@ type TokenPairVolume struct {
 type AllVolumes struct {
 	Volumes 	map[string]string	`json:"volumes,omitmepty"`
 	Time 		int64 				`json:"time,omitempty"`
+}
+
+type MkrTokenSupply struct {
+	TotalSupply 	string	`json:"totalSupply,omitempty"`
 }
 
 type Error struct {

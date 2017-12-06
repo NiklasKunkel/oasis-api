@@ -115,8 +115,25 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
 }
 
+func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
+	allMarkets := make(AllMarkets)
+	//iterate over all token pairs
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(tokenPairInfo.Base, tokenPairInfo.Quote)
+		if err != nil {
+			//call for pulling market data for token pair failed
+			//one token pair failure should not make the whole call fail
+			//give null data for this token pair and continue
+			fmt.Printf(err.Error())
+			allMarkets[tokenPair] = Market{tokenPair, "null", "null", "null", "null", "null", "null", "null", true, time.Now().Unix()}
+		}
+		//push token pair market data
+		allMarkets[tokenPair] = Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()}
+	}
+	json.NewEncoder(w).Encode(allMarkets)
+}
 
-//Get All Token Data 
+
 func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req) 
 	baseToken := strings.ToUpper(params["base"])
@@ -134,7 +151,7 @@ func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
 		fmt.Printf(err.Error())
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Query market data for %s failed", tokenPair)})
 	}
-	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
+	json.NewEncoder(w).Encode(Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
 	return
 }
 
@@ -157,13 +174,13 @@ func InitAPIServer() {
 	//API Endpoints
 	router.HandleFunc("/v1/pairs", APIGetAllPairs).Methods("GET")							//REST endpoint for calling tradable markets
 	router.HandleFunc("/v1/pairs/{base}/{quote}", APIGetPair).Methods("GET")				//REST endpoint for calling token pair data
-	//router.HandleFunc("/v1/markets", APIGetAllTokenPairs).Methods("GET")					//REST endpoint for calling ticker of all token pairs
+	router.HandleFunc("/v1/markets", APIGetAllMarkets).Methods("GET")					//REST endpoint for calling ticker of all token pairs
 	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPairMarket).Methods("GET")	//REST endpoint for calling ticker of a token pair
 	//router.HandleFunc("/v1/prices", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
 	//router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
 	router.HandleFunc("/v1/volumes", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
-	//router.HandleFunc("/v1/spreads", APIGetAllSpread).Methods("GET")							//REST endpoint for calling spread of all token pairs
+	//router.HandleFunc("/v1/spreads", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
 	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
 	//router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTrades).Methods("GET")
 	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")
