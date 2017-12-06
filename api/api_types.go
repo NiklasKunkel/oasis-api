@@ -32,7 +32,6 @@ type TokenPairSpread struct {
 	Ask 	string 	`json:"ask,omitempty"`
 }
 
-//change this type AllSpread map[string]*TokenPairSpread to fix bug
 type AllSpreads struct {
 	Spreads 	map[string]*TokenPairSpread `json:"spreads,omitempty"`
 	Time 		int64 	`json:"time,omitempty"`
