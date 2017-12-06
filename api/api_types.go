@@ -10,8 +10,6 @@ type Market struct{
 	Time 	int64 	`json:"time,omitempty"`
 }
 
-type Markets []Market
-
 type MkrTokenSupply struct {
 	TotalSupply 	string	`json:"totalSupply,omitempty"`
 }
@@ -33,6 +31,12 @@ type TokenPairSpread struct {
 	Bid 	string 	`json:"bid,omitempty"`
 	Ask 	string 	`json:"ask,omitempty"`
 }
+
+type AllSpreads struct {
+	Spreads 	map[string]*TokenPairSpread `json:"spreads,omitempty"`
+	Time 		int64 	`json:"time,omitempty"`
+}
+
 
 type TokenPairPrice struct {
 	Price 		string	`json:"price,omitempty"`

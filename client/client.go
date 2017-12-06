@@ -276,7 +276,7 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 
 }
 
-func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
+func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
 	sumBaseVol := big.NewInt(0)
 	sumQuoteVol := big.NewInt(0)
 	price := new(big.Float)
@@ -342,6 +342,32 @@ func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken stri
 	fmt.Printf("Last Price = %s\n", lastPrice.Text('f', 8))
 
 	return price.Text('f', 8), lastPrice.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
+}
+
+func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, string, string, string, string, string, error) {
+	//get bid/ask spread
+	bid, ask, err := GetSpread(baseToken, quoteToken)
+	if err != nil {
+		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("GetSpread] failed due to (%s)\n", err)
+	}
+	//create event filter
+	filter, err := CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	if err != nil {
+		//print this error to log in the API function layer - then json.encode query token pair failed
+		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CreateEventFilter] failed due to (%s)\n", err)
+	}
+	//get all events from last 24 hour interval
+	logs, err := GetLogs(filter)
+	if err != nil {
+		//print this error to log in the API function layer - then json.encode query token pair failed
+		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
+	}
+	//calculate price, volume, min, and max from event logs
+	sPrice, sLast, sVolume, sMin, sMax, err := CalculateMarketDataFromLogs(logs, baseToken, quoteToken)
+	if err != nil {
+		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CalculateMarketDataFromLogs] failed) due to (%s)\n", err)
+	}
+	return sPrice, sLast, sVolume, sMin, sMax, bid, ask, err
 }
 
 func GetSpread(baseToken string, quoteToken string) (string, string, error) {
@@ -452,7 +478,7 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	return fBestOffer.Text('f', 8), nil
 }
 
-func GetMarkets() (map[string]*data.Market) {
+func GetAllPairs() (map[string]*data.Market) {
 	//loop through each market in static data
 	for tokenPair, marketData := range data.LiveMarkets {
 		//construct calldata
@@ -485,12 +511,37 @@ func GetMarkets() (map[string]*data.Market) {
 	return data.LiveMarkets
 }
 
-/*
-func GetMarket(baseToken string, quoteToken string) (string, error) {
+func GetPair(baseToken string, quoteToken string) (*data.Market, error) {
+	tokenPair := strings.ToUpper(baseToken) + "/" + strings.ToUpper(quoteToken)
+	pMarket := data.LiveMarkets[tokenPair]
 
-	data.LiveMarkets[strings.ToUpper(baseToken) + "/" + strings.ToUpper(quoteToken)]
+	//Get Contracts for Token Pair
+	baseTokenAddress := data.TokenInfoLib[baseToken].Contract
+	quoteTokenAddress := data.TokenInfoLib[quoteToken].Contract
+	calldata := "0x8d7daf95" + baseTokenAddress[2:] + quoteTokenAddress[2:]
+	//create transaction
+	tx := CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		calldata,
+		0)
+	//check if market is active
+	status, err := CallTx(tx)
+	if err != nil {
+		fmt.Printf("[GetMarket] failed to query whitelist status of %s due to %s", tokenPair, err)
+		return nil, fmt.Errorf("[GetMarket] failed to query whitelist status of %s due to %s", tokenPair, err)
+	}
+	//update market status
+	if (status == "0x0000000000000000000000000000000000000000000000000000000000000001") {
+		pMarket.Active = true
+	} else {
+		pMarket.Active = false
+	}
+	return pMarket, nil
 }
-*/
 
 func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	iSumBaseVol := new(big.Int)

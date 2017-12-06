@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 	"github.com/gorilla/mux"
@@ -12,25 +13,13 @@ import (
 	"github.com/niklaskunkel/oasis-api/data"
 )
 
-//Get MKR Token Supply
-func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
-	supply, err := client.GetMkrTokenSupply()
-	if err != nil {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR Token Supply Failed")})
-	} else {
-		json.NewEncoder(w).Encode(MkrTokenSupply{supply})
-	}
-	return
-}
-
-func APIGetMarkets(w http.ResponseWriter, req *http.Request) {
-	marketStatus := client.GetMarkets()
+func APIGetAllPairs(w http.ResponseWriter, req *http.Request) {
+	marketStatus := client.GetAllPairs()
 	json.NewEncoder(w).Encode(marketStatus)
 }
 
-//Get All Token Data 
-func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req) 
+func APIGetPair(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
 	tokenPair := baseToken + string('/') + quoteToken
@@ -41,40 +30,71 @@ func APIGetTokenPair(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//get bid/ask spread
-	bid, ask, err := client.GetSpread(baseToken, quoteToken)
+	market, err := client.GetPair(baseToken, quoteToken)
 	if err != nil {
-		fmt.Printf("GetTokenPair] could not GetSpread() due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying market for %s failed", tokenPair)})
 		return
 	}
 
-	//create event filter
-	filter, err := client.CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
-	if err != nil {
-		fmt.Printf("[GetTokenPair] could not CreateEventFilter() due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+	json.NewEncoder(w).Encode(market)
+}
+
+func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
+	//TODO
+}
+
+func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
+	//TODO
+}
+
+func APIGetAllVolume(w http.ResponseWriter, req *http.Request) {
+	allVolumes := AllVolumes{make(map[string]string), time.Now().Unix()}
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		vol, err := client.GetTokenPairVolume(tokenPairInfo.Base, tokenPairInfo.Quote)
+		if err != nil {
+			vol = "null"
+		}
+		allVolumes.Volumes[tokenPair] = vol
+	}
+	json.NewEncoder(w).Encode(allVolumes)
+}
+
+func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
+	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
 		return
 	}
-
-	//get all events from last 24 hour interval
-	logs, err := client.GetLogs(filter)
+	vol, err := client.GetTokenPairVolume(baseToken, quoteToken)
 	if err != nil {
-		fmt.Printf("[GetTokenPair] could not GetLogs() due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying Volume Failed")})
 		return
 	}
-
-	//calculate price, volume, min, and max from event logs
-	sPrice, sLast, sVolume, sMin, sMax, err := client.CalculatePriceFromLogs(logs, baseToken, quoteToken)
-	if err != nil {
-		fmt.Printf("[GetTokenPair] could not CalculatePriceFromLogs() due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying token pair %s failed", tokenPair)})
-		return
-	}
-
-	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sLast, sVolume, ask, bid, sMin, sMax, true, time.Now().Unix()})
+	json.NewEncoder(w).Encode(TokenPairVolume{vol, time.Now().Unix()})
 	return
+}
+
+func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
+	allSpreads := AllSpreads{make(map[string]*TokenPairSpread), time.Now().Unix()}
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		baseToken := tokenPairInfo.Base
+		quoteToken := tokenPairInfo.Quote
+		bid, ask, err := client.GetSpread(baseToken, quoteToken)
+		if err != nil {
+			fmt.Printf("[APIGetAllSpread] failed to get spread for %s due to (%s)\n", tokenPair, err)
+			bid = "null"
+			ask = "null"
+		}
+		fmt.Printf("Setting Spread For %s : Bid = %s | Ask = %s\n", tokenPair, bid, ask)
+		pair := allSpreads.Spreads[tokenPair]
+		pair_t := reflect.TypeOf(pair).Kind()
+		fmt.Printf("Type of Pair = %s\n", pair_t)
+		(*pair).Ask = ask
+		//allSpreads.Spreads[tokenPair].Ask = ask
+	}
+	json.NewEncoder(w).Encode(allSpreads)
 }
 
 func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
@@ -95,45 +115,38 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
 }
 
-func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
-	//
-}
 
-func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
+//Get All Token Data 
+func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req) 
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
-	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
+	tokenPair := baseToken + string('/') + quoteToken
+
+	//Verify that token pair is supported by oasisdex
+	if (!client.IsValidTokenPair(tokenPair)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown pair")})
 		return
 	}
-	vol, err := client.GetTokenPairVolume(baseToken, quoteToken)
+
+	sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(baseToken, quoteToken)
 	if err != nil {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying Volume Failed")})
-		return
+		fmt.Printf(err.Error())
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Query market data for %s failed", tokenPair)})
 	}
-	json.NewEncoder(w).Encode(TokenPairVolume{vol, time.Now().Unix()})
+	json.NewEncoder(w).Encode(TokenPair{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
 	return
 }
 
-func APIGetVolume(w http.ResponseWriter, req *http.Request) {
-	allVolumes := AllVolumes{make(map[string]string), time.Now().Unix()}
-	for tokenPair, tokenPairInfo := range data.LiveMarkets {
-		vol, err := client.GetTokenPairVolume(tokenPairInfo.Base, tokenPairInfo.Quote)
-		if err != nil {
-			vol = "null"
-		}
-		allVolumes.Volumes[tokenPair] = vol
+//Get MKR Token Supply
+func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
+	supply, err := client.GetMkrTokenSupply()
+	if err != nil {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
+	} else {
+		json.NewEncoder(w).Encode(MkrTokenSupply{supply})
 	}
-	json.NewEncoder(w).Encode(allVolumes)
-}
-
-func APIGetSpread(w http.ResponseWriter, req *http.Request) {
-	//
-}
-
-func APIGetPrice(w http.ResponseWriter, req *http.Request) {
-	//
+	return
 }
 
 //Request Handler
@@ -142,14 +155,18 @@ func InitAPIServer() {
 	router := mux.NewRouter()																//Create new router
 
 	//API Endpoints
-	router.HandleFunc("/v1/markets", APIGetMarkets).Methods("GET")							//REST endpoint for calling tradable markets
-	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPair).Methods("GET")			//REST endpoint for calling token pair data
-	router.HandleFunc("/v1/price", APIGetPrice).Methods("GET")								//REST endpoint for calling price of all token pairs
-	router.HandleFunc("/v1/price/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
-	router.HandleFunc("/v1/volume", APIGetVolume).Methods("GET")							//REST endpoint for calling volume of all token pairs
-	router.HandleFunc("/v1/volume/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
-	router.HandleFunc("/v1/spread", APIGetSpread).Methods("GET")							//REST endpoint for calling spread of all token pairs
-	router.HandleFunc("/v1/spread/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
+	router.HandleFunc("/v1/pairs", APIGetAllPairs).Methods("GET")							//REST endpoint for calling tradable markets
+	router.HandleFunc("/v1/pairs/{base}/{quote}", APIGetPair).Methods("GET")				//REST endpoint for calling token pair data
+	//router.HandleFunc("/v1/markets", APIGetAllTokenPairs).Methods("GET")					//REST endpoint for calling ticker of all token pairs
+	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPairMarket).Methods("GET")	//REST endpoint for calling ticker of a token pair
+	//router.HandleFunc("/v1/prices", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
+	//router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/volumes", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
+	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
+	//router.HandleFunc("/v1/spreads", APIGetAllSpread).Methods("GET")							//REST endpoint for calling spread of all token pairs
+	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
+	//router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTrades).Methods("GET")
+	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")
 	router.HandleFunc("/v1/tokens/mkr/totalsupply", APIGetMkrTokenSupply).Methods("GET")	//REST endpoint for calling MKR token supply
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
