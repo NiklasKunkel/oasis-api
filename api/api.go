@@ -99,8 +99,8 @@ func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
 
 func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
-	baseToken := params["base"]
-	quoteToken := params["quote"]
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
 
 	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})

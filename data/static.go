@@ -135,13 +135,13 @@ var LiveMarkets = map[string]*Market{
 		"18",
 		true,
 		0},
-	"RDN/ETH": &Market{
+	/*"RDN/ETH": &Market{
 		"RDN",
 		"ETH",
 		"18",
 		"18",
 		true,
-		0},
+		0},*/
 }
 
 type tokenInfo struct {
