@@ -219,8 +219,8 @@ func InitAPIServer() {
 	router.HandleFunc("/v1/pairs/{base}/{quote}", APIGetPair).Methods("GET")				//REST endpoint for calling tradable token pairs
 	router.HandleFunc("/v1/markets/", APIGetAllMarkets).Methods("GET")						//REST endpoint for calling market data of all token pairs
 	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPairMarket).Methods("GET")	//REST endpoint for calling market data of a token pair
-	//router.HandleFunc("/v1/prices/", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
-	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/prices/", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
+	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
 	router.HandleFunc("/v1/volumes/", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
 	//router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
