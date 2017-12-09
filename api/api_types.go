@@ -39,13 +39,15 @@ type AllSpreads struct {
 
 
 type TokenPairPrice struct {
-	Price 		string	`json:"price,omitempty"`
+	Vwap24Hr 	string	`json:"24hrvwap,omitempty"`
+	Vwap12Hr	string 	`json:"12hrvwap,omitempty"`
+	Vwap6Hr		string	`json:"6hrvwap,omitempty"`
+	Vwap1Hr 	string	`json:"1hrvwap,omitempty"`
+	Last 		string	`json:"last,omitempty"`
+	Time 		int64 	`json:"time,omitempty"`
 }
 
-type AllPrices struct {
-	Prices 	map[string]*TokenPairPrice	`json:"prices,omitempty"`
-	Time 	int64 	`json:"time,omitempty"`
-}
+type AllPrices 	map[string]TokenPairPrice
 
 type TokenPairVolume struct {
 	Volume 		string	`json:"vol,omitempty"`
@@ -58,7 +60,8 @@ type AllVolumes struct {
 }
 
 type MkrTokenSupply struct {
-	TotalSupply 	string	`json:"totalSupply,omitempty"`
+	TotalSupply 		string	`json:"totalSupply,omitempty"`
+	CirculatingSupply	string	`json:"circulatingSupply,omitempty"`
 }
 
 type Error struct {

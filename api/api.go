@@ -40,11 +40,54 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
-	//TODO
+	allPrices := make(AllPrices)
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		prices := []string{"null", "null", "null", "null", "null"}
+		for index, interval := range []int{1, 6, 12, 24} {
+			vwap, last, err := client.GetTokenPairVolumeWeightedPrice(tokenPairInfo.Base, tokenPairInfo.Quote, interval)
+			if err != nil {
+				//log error
+				fmt.Printf(err.Error())
+				continue
+			}
+			prices[index] = vwap
+			prices[4] = last
+		}
+		allPrices[tokenPair] = TokenPairPrice{prices[3], prices[2], prices[1], prices[0], prices[4], time.Now().Unix()}
+	}
+	//check if prices is empty
+	if (len(allPrices) == 0) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying prices for all pairs failed")})
+	}
+	json.NewEncoder(w).Encode(allPrices)
+	return
 }
 
 func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
-	//TODO
+	params := mux.Vars(req)
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
+	tokenPair := baseToken + string('/') + quoteToken
+
+	//Verify that token pair is supported by oasisdex
+	if (!client.IsValidTokenPair(tokenPair)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown pair")})
+		return
+	}
+	prices := []string{"null", "null", "null", "null", "null"}
+	for index, interval := range []int{1, 6, 12, 24} {
+		vwap, last, err := client.GetTokenPairVolumeWeightedPrice(baseToken, quoteToken, interval)
+		if err != nil {
+			//log error
+			fmt.Printf(err.Error())
+			continue
+		}
+		prices[index] = vwap
+		prices[4] = last
+	}
+	priceResp := TokenPairPrice{prices[3], prices[2], prices[1], prices[0], prices[4], time.Now().Unix()}
+	json.NewEncoder(w).Encode(priceResp)
+	return
 }
 
 func APIGetAllVolume(w http.ResponseWriter, req *http.Request) {
@@ -161,7 +204,7 @@ func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
 	} else {
-		json.NewEncoder(w).Encode(MkrTokenSupply{supply})
+		json.NewEncoder(w).Encode(MkrTokenSupply{supply,supply})
 	}
 	return
 }
@@ -177,7 +220,7 @@ func InitAPIServer() {
 	router.HandleFunc("/v1/markets/", APIGetAllMarkets).Methods("GET")						//REST endpoint for calling market data of all token pairs
 	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPairMarket).Methods("GET")	//REST endpoint for calling market data of a token pair
 	//router.HandleFunc("/v1/prices/", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
-	//router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
 	router.HandleFunc("/v1/volumes/", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
 	//router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs

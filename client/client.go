@@ -150,6 +150,59 @@ func CallTx(tx ethrpc.T, tag ...string) (string, error) {
 	return data, nil
 }
 
+//subscribe filter to client
+func SubscribeEventFilter(params ethrpc.FilterParams) (string, error) {
+	filterID, err := EthClient.EthNewFilter(params)
+	if err != nil {
+		return "", fmt.Errorf("[CreateEventFilter()] failed due to (%s)\n", err)
+	}
+	fmt.Printf("Created Filter with filterID = %s\n", filterID)
+	return filterID, nil
+}
+
+func KillEventFilter(filterId string) (bool, error) {
+	status, err :=  EthClient.EthUninstallFilter(filterId)
+	return status, err
+}
+
+func GetFilterLogs(filterId string) ([]ethrpc.Log, error) {
+	logs, err := EthClient.EthGetFilterLogs(filterId)
+	if err != nil {
+		return []ethrpc.Log{}, fmt.Errorf("[GetFilterLogs] failed due to (%s)\n", err)
+	}
+	return logs, err
+}
+
+func CreateEventFilterInterval(interval int, address []string, topics [][]string) (ethrpc.FilterParams, error) {
+	toBlock, err := EthClient.EthBlockNumber()
+	if err != nil {
+			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed when pulling latest block from client with error (%s)\n", err)
+	}
+
+	blockInterval := parser.Hours2Block(interval)
+	fromBlock := toBlock - blockInterval
+	if (fromBlock > toBlock) {
+		return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failued due to being passed invalid interval parameter where fromBlock > toBlock\n")
+	}
+
+	//Verify valid contract address(es)
+	for _, contractAddr := range address {
+		if (!strings.HasPrefix(contractAddr, "0x") || len(contractAddr) != 42) {
+			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventsFilter] failed due to invalid contract address (%s)\n", contractAddr)
+		}
+	}
+
+	params := ethrpc.FilterParams{
+		FromBlock: "0x" + strconv.FormatInt(int64(fromBlock), 16),
+		ToBlock: "0x" + strconv.FormatInt(int64(toBlock), 16),
+		Address: address,
+		Topics: topics,
+	}
+
+	fmt.Printf("%+v\n", params)
+	return params, nil
+}
+
 func CreateEventFilter(fromBlock string, toBlock string, address []string, topics [][]string) (ethrpc.FilterParams, error) {
 	var toBlockNum int
 	var fromBlockNum int
@@ -201,29 +254,6 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 	fmt.Printf("%+v\n", params)
 
 	return params, nil
-}
-
-//subscribe filter to client
-func SubscribeEventFilter(params ethrpc.FilterParams) (string, error) {
-	filterID, err := EthClient.EthNewFilter(params)
-	if err != nil {
-		return "", fmt.Errorf("[CreateEventFilter()] failed due to (%s)\n", err)
-	}
-	fmt.Printf("Created Filter with filterID = %s\n", filterID)
-	return filterID, nil
-}
-
-func KillEventFilter(filterId string) (bool, error) {
-	status, err :=  EthClient.EthUninstallFilter(filterId)
-	return status, err
-}
-
-func GetFilterLogs(filterId string) ([]ethrpc.Log, error) {
-	logs, err := EthClient.EthGetFilterLogs(filterId)
-	if err != nil {
-		return []ethrpc.Log{}, fmt.Errorf("[GetFilterLogs] failed due to (%s)\n", err)
-	}
-	return logs, err
 }
 
 func GetLogs(params ethrpc.FilterParams) ([]ethrpc.Log, error) {
@@ -279,10 +309,10 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
 	sumBaseVol := big.NewInt(0)
 	sumQuoteVol := big.NewInt(0)
-	price := new(big.Float)
 	max := new(big.Float).SetInt(sumBaseVol)
  	min := new(big.Float).SetInt(sumBaseVol)
  	lastPrice := new(big.Float).SetInt(sumBaseVol)
+ 	price := new(big.Float)
 
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
@@ -366,6 +396,24 @@ func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, st
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CalculateMarketDataFromLogs] failed) due to (%s)\n", err)
 	}
 	return sPrice, sLast, sVolume, sMin, sMax, bid, ask, err
+}
+
+func GetTokenPairVolumeWeightedPrice(baseToken string, quoteToken string, interval int) (string, string, error) {
+	//create event filter
+	filter, err := CreateEventFilterInterval(interval, []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	if err != nil {
+		return "null", "null", fmt.Errorf("[CreateEventFilterInterval] failed due to (%s)\n", err)
+	}
+	//get all events from last 24 hour interval
+	logs, err := GetLogs(filter)
+	if err != nil {
+		return "null", "null", fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
+	}
+	vwap, last, _, _, _, err := CalculateMarketDataFromLogs(logs, baseToken, quoteToken)
+	if err != nil {
+		return "null", "null", fmt.Errorf("[CalculateMarketDataFromLogs] failed due to (%s)\n", err)
+	}
+	return vwap, last, nil
 }
 
 func GetSpread(baseToken string, quoteToken string) (string, string, error) {
