@@ -39,6 +39,46 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(market)
 }
 
+func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
+	allMarkets := make(AllMarkets)
+	//iterate over all token pairs
+	for tokenPair, tokenPairInfo := range data.LiveMarkets {
+		sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(tokenPairInfo.Base, tokenPairInfo.Quote)
+		if err != nil {
+			//call for pulling market data for token pair failed
+			//one token pair failure should not make the whole call fail
+			//give null data for this token pair and continue
+			fmt.Printf(err.Error())
+			allMarkets[tokenPair] = Market{tokenPair, "null", "null", "null", "null", "null", "null", "null", true, time.Now().Unix()}
+		}
+		//push token pair market data
+		allMarkets[tokenPair] = Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()}
+	}
+	json.NewEncoder(w).Encode(allMarkets)
+}
+
+
+func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req) 
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
+	tokenPair := baseToken + string('/') + quoteToken
+
+	//Verify that token pair is supported by oasisdex
+	if (!client.IsValidTokenPair(tokenPair)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown pair")})
+		return
+	}
+
+	sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(baseToken, quoteToken)
+	if err != nil {
+		fmt.Printf(err.Error())
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Query market data for %s failed", tokenPair)})
+	}
+	json.NewEncoder(w).Encode(Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
+	return
+}
+
 func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
 	allPrices := make(AllPrices)
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
@@ -83,7 +123,9 @@ func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 		prices[index] = vwap
-		prices[4] = last
+		if(last != "") {
+			prices[4] = last
+		}
 	}
 	priceResp := TokenPairPrice{prices[3], prices[2], prices[1], prices[0], prices[4], time.Now().Unix()}
 	json.NewEncoder(w).Encode(priceResp)
@@ -152,49 +194,32 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 	bid, ask, err := client.GetSpread(baseToken, quoteToken)
 	if err != nil {
 		fmt.Printf("[GetBidAskSpread] failed due to (%s)\n", err)
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying Bid/Ask Spread Failed")})
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying bid/ask spread failed")})
 		return
 	}
 	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
 }
 
-func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
-	allMarkets := make(AllMarkets)
-	//iterate over all token pairs
-	for tokenPair, tokenPairInfo := range data.LiveMarkets {
-		sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(tokenPairInfo.Base, tokenPairInfo.Quote)
-		if err != nil {
-			//call for pulling market data for token pair failed
-			//one token pair failure should not make the whole call fail
-			//give null data for this token pair and continue
-			fmt.Printf(err.Error())
-			allMarkets[tokenPair] = Market{tokenPair, "null", "null", "null", "null", "null", "null", "null", true, time.Now().Unix()}
-		}
-		//push token pair market data
-		allMarkets[tokenPair] = Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()}
-	}
-	json.NewEncoder(w).Encode(allMarkets)
-}
-
-
-func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req) 
+func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
+	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
-	tokenPair := baseToken + string('/') + quoteToken
 
-	//Verify that token pair is supported by oasisdex
-	if (!client.IsValidTokenPair(tokenPair)) {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown pair")})
+	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Unknown token pair")})
 		return
 	}
 
-	sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(baseToken, quoteToken)
+	tradeHistory, err := client.GetTokenPairTradeHistory(baseToken, quoteToken)
 	if err != nil {
-		fmt.Printf(err.Error())
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Query market data for %s failed", tokenPair)})
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying trade history failed")})
+		return
 	}
-	json.NewEncoder(w).Encode(Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
+	if (len(tradeHistory) == 0) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("No recent trade history")})
+		return
+	}
+	json.NewEncoder(w).Encode(tradeHistory)
 	return
 }
 
@@ -225,7 +250,7 @@ func InitAPIServer() {
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
 	//router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
 	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
-	//router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTrades).Methods("GET")	//not implemented yet
+	router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTradeHistory).Methods("GET")	//REST endpoint for calling trade history of token pair
 	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")	//not implemented yet
 	router.HandleFunc("/v1/tokens/mkr/totalsupply", APIGetMkrTokenSupply).Methods("GET")	//REST endpoint for calling MKR token supply
 

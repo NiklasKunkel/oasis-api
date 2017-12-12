@@ -59,6 +59,22 @@ type AllVolumes struct {
 	Time 		int64 				`json:"time,omitempty"`
 }
 
+type TokenPairTradeHistory struct {
+	Trades 		[]Trade 	`json:"trades,omitempty"`
+	Time 		int64 		`json:"time,omitempty"`
+
+}
+
+type Trade struct {
+	Price 		string	`json:"price,omitempty"`
+	BuyToken	string 	`json:"buyToken,omitempty"`
+	PayToken	string 	`json:"payToken,omitempty"`
+	BuyAmount	string 	`json:"buyAmount,omitempty"`
+	PayAmount	string 	`json:"payAmount,omitempty"`
+	Action 		string 	`jsonL:"action,omitempty"`
+	Time 		int64 	`json:"time,omitempty"`
+}
+
 type MkrTokenSupply struct {
 	TotalSupply 		string	`json:"totalSupply,omitempty"`
 	CirculatingSupply	string	`json:"circulatingSupply,omitempty"`

@@ -303,7 +303,72 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 	if (max.Cmp(fPrice) == -1) {			//if price is higer than maximumum price
 		max.Set(fPrice)						//set new maximum price
 	}
+}
 
+type TradeLog struct {
+	Price 		string	`json:"price,omitempty"`
+	BuyToken	string 	`json:"buyToken,omitempty"`
+	PayToken	string 	`json:"payToken,omitempty"`
+	BuyAmount	string 	`json:"buyAmount,omitempty"`
+	PayAmount	string 	`json:"payAmount,omitempty"`
+	Action 		string 	`json:"action,omitempty"`
+	Time 		string	`json:"time,omitempty"`
+}
+
+func ExtractTradeHistoryFromLog(baseToken string, quoteToken string, log ethrpc.Log, isBaseFirst bool, tradeHistory *[]TradeLog) {
+	var sBaseTokenAmount string
+	var sQuoteTokenAmount string
+	fPrice := new(big.Float)
+
+	if (isBaseFirst) {
+		sBaseTokenAmount = log.Data[195:258]	//pay_gem
+		sQuoteTokenAmount = log.Data[259:322]	//buy_gem
+	} else {
+		sQuoteTokenAmount = log.Data[195:258]	//pay_gem
+		sBaseTokenAmount = log.Data[259:322]	//buy_gem
+	}
+	sTimestamp := log.Data[323:386]
+
+	intBaseTokenAmount := parser.Hex2Int(sBaseTokenAmount)
+	intQuoteTokenAmount := parser.Hex2Int(sQuoteTokenAmount)
+	intTimestamp := parser.Hex2Int(sTimestamp)
+
+	fBaseTokenAmount := parser.AdjustIntForPrecision(intBaseTokenAmount, data.TokenInfoLib[baseToken].Precision)
+	fQuoteTokenAmount := parser.AdjustIntForPrecision(intQuoteTokenAmount, data.TokenInfoLib[quoteToken].Precision)
+
+	fPrice = fPrice.Quo(fQuoteTokenAmount, fBaseTokenAmount)
+
+	if(isBaseFirst) {
+		*tradeHistory = append(*tradeHistory, TradeLog{fPrice.Text('f',8), quoteToken, baseToken, fQuoteTokenAmount.Text('f',8), fBaseTokenAmount.Text('f',8), "BUY", intTimestamp.String()})
+	} else {
+		*tradeHistory = append(*tradeHistory, TradeLog{fPrice.Text('f',8), baseToken, quoteToken, fBaseTokenAmount.Text('f',8), fQuoteTokenAmount.Text('f', 8), "SELL", intTimestamp.String()})
+	}
+}
+
+func GetTokenPairTradeHistory(baseToken string, quoteToken string) ([]TradeLog, error) {
+	var tradeHistory []TradeLog
+
+	baseTokenContract := data.TokenInfoLib[baseToken].Contract
+	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
+
+	params, err := CreateEventFilterInterval(24, []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x3383e3357c77fd2e3a4b30deea81179bc70a795d053d14d5b7f2f01d0fd4596f"}})
+	if err != nil {
+		return nil, fmt.Errorf("[GetTokenPairTradeHistory] failed due to(%s)\n", err)
+	}
+	logs, err := GetLogs(params)
+	if err != nil {
+		return nil, fmt.Errorf("[GetTokenPairTradeHistory] failed due to(%s)\n", err)
+	}
+	for _, log := range logs {
+		payTokenContract := log.Data[66:130]
+		buyTokenContract := log.Data[130:194]
+		if (payTokenContract == baseTokenContract[2:] && buyTokenContract == quoteTokenContract[2:]) {
+			ExtractTradeHistoryFromLog(baseToken, quoteToken, log, true, &tradeHistory)
+		} else if (payTokenContract == quoteTokenContract[2:] && buyTokenContract == baseTokenContract[2:]) {
+			ExtractTradeHistoryFromLog(baseToken, quoteToken, log, false, &tradeHistory)
+		}
+	}
+	return tradeHistory, nil
 }
 
 func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
