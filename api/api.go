@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"log"
-	"reflect"
+	//"reflect"
 	"strings"
 	"time"
 	"github.com/gorilla/mux"
@@ -40,7 +40,7 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
-	allMarkets := make(AllMarkets)
+	allMarkets := AllMarkets{make(map[string]Market), time.Now().Unix()}
 	//iterate over all token pairs
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		sPrice, sLast, sVol, sMin, sMax, sBid, sAsk, err := client.GetTokenPairMarket(tokenPairInfo.Base, tokenPairInfo.Quote)
@@ -49,10 +49,10 @@ func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
 			//one token pair failure should not make the whole call fail
 			//give null data for this token pair and continue
 			fmt.Printf(err.Error())
-			allMarkets[tokenPair] = Market{tokenPair, "null", "null", "null", "null", "null", "null", "null", true, time.Now().Unix()}
+			allMarkets.Markets[tokenPair] = Market{tokenPair, "null", "null", "null", "null", "null", "null", "null", true}
 		}
 		//push token pair market data
-		allMarkets[tokenPair] = Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()}
+		allMarkets.Markets[tokenPair] = Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true}
 	}
 	json.NewEncoder(w).Encode(allMarkets)
 }
@@ -75,12 +75,12 @@ func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
 		fmt.Printf(err.Error())
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Query market data for %s failed", tokenPair)})
 	}
-	json.NewEncoder(w).Encode(Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true, time.Now().Unix()})
+	json.NewEncoder(w).Encode(TokenPairMarket{Market{tokenPair, sPrice, sLast, sVol, sAsk, sBid, sMin, sMax, true}, time.Now().Unix()})
 	return
 }
 
 func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
-	allPrices := make(AllPrices)
+	allPrices := AllPrices{make(map[string]Prices), time.Now().Unix()}
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		prices := []string{"null", "null", "null", "null", "null"}
 		for index, interval := range []int{1, 6, 12, 24} {
@@ -93,10 +93,10 @@ func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
 			prices[index] = vwap
 			prices[4] = last
 		}
-		allPrices[tokenPair] = TokenPairPrice{prices[3], prices[2], prices[1], prices[0], prices[4], time.Now().Unix()}
+		allPrices.Prices[tokenPair] = Prices{prices[3], prices[2], prices[1], prices[0], prices[4]}
 	}
 	//check if prices is empty
-	if (len(allPrices) == 0) {
+	if (len(allPrices.Prices) == 0) {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying prices for all pairs failed")})
 	}
 	json.NewEncoder(w).Encode(allPrices)
@@ -127,8 +127,7 @@ func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
 			prices[4] = last
 		}
 	}
-	priceResp := TokenPairPrice{prices[3], prices[2], prices[1], prices[0], prices[4], time.Now().Unix()}
-	json.NewEncoder(w).Encode(priceResp)
+	json.NewEncoder(w).Encode(TokenPairPrices{Prices{prices[3], prices[2], prices[1], prices[0], prices[4]}, time.Now().Unix()})
 	return
 }
 
@@ -162,7 +161,7 @@ func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
-	allSpreads := AllSpreads{make(map[string]*TokenPairSpread), time.Now().Unix()}
+	allSpreads := AllSpreads{make(map[string]Spread), time.Now().Unix()}
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		baseToken := tokenPairInfo.Base
 		quoteToken := tokenPairInfo.Quote
@@ -172,12 +171,9 @@ func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
 			bid = "null"
 			ask = "null"
 		}
-		fmt.Printf("Setting Spread For %s : Bid = %s | Ask = %s\n", tokenPair, bid, ask)
-		pair := allSpreads.Spreads[tokenPair]
-		pair_t := reflect.TypeOf(pair).Kind()
-		fmt.Printf("Type of Pair = %s\n", pair_t)
-		(*pair).Ask = ask
-		//allSpreads.Spreads[tokenPair].Ask = ask
+		fmt.Printf("Getting Spread For %s : Bid = %s | Ask = %s\n", tokenPair, bid, ask)
+
+		allSpreads.Spreads[tokenPair] = Spread{bid, ask}
 	}
 	json.NewEncoder(w).Encode(allSpreads)
 }
@@ -197,7 +193,7 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying bid/ask spread failed")})
 		return
 	}
-	json.NewEncoder(w).Encode(TokenPairSpread{bid,ask})
+	json.NewEncoder(w).Encode(TokenPairSpread{Spread{bid,ask}, time.Now().Unix()})
 }
 
 func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
@@ -223,13 +219,26 @@ func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
+/*
+func APIGetTokenPairOrders(w http.ResponseWriter, req *httpRerquest) {
+	params := mux.Vars(req)
+	baseToken := strings.ToUpper(params["base"])
+	quoteToken := strings.ToUpper(params["quote"])
+	if (!client.IsValidTokenPair(baseToken + string("/") + quoteToken)) {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf*"Unkown token pair")})
+	}
+	askOrders, bidOrders := GetTokenPairOrderBook(baseToken, quoteToken)
+
+}
+*/
+
 //Get MKR Token Supply
 func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	supply, err := client.GetMkrTokenSupply()
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
 	} else {
-		json.NewEncoder(w).Encode(MkrTokenSupply{supply,supply})
+		json.NewEncoder(w).Encode(MkrTokenSupply{supply,supply, time.Now().Unix()})
 	}
 	return
 }
@@ -248,7 +257,7 @@ func InitAPIServer() {
 	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
 	router.HandleFunc("/v1/volumes/", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
-	//router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
+	router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
 	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
 	router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTradeHistory).Methods("GET")	//REST endpoint for calling trade history of token pair
 	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")	//not implemented yet

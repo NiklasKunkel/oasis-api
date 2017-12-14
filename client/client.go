@@ -311,7 +311,7 @@ type TradeLog struct {
 	PayToken	string 	`json:"payToken,omitempty"`
 	BuyAmount	string 	`json:"buyAmount,omitempty"`
 	PayAmount	string 	`json:"payAmount,omitempty"`
-	Action 		string 	`json:"action,omitempty"`
+	Type 		string 	`json:"type,omitempty"`
 	Time 		string	`json:"time,omitempty"`
 }
 
