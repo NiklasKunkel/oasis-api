@@ -1,6 +1,12 @@
 package api
 
-type Market struct {
+type Response struct {
+	Data 		interface{}			`json:"data,omitempty"`
+	Time 		int64 				`json:"time,omitempty"`
+	Message 	string 				`json:"message,omitempty"`
+}
+
+type TokenPairMarket struct {
 	TokenPair	string				`json:"pair,omitempty"`
 	Price 		string				`json:"price,omitempty"`
 	LastPrice	string				`json:"last,omitempty"`
@@ -12,33 +18,9 @@ type Market struct {
 	Active		bool				`json:"active,omitempty"`
 }
 
-type TokenPairMarket struct {
-	Market 		Market 				`json:"market,omitempty"`
-	Timer 		int64 				`json:"time,omitempty"`
-}
+type AllMarkets	map[string]TokenPairMarket
 
-type AllMarkets struct {
-	Markets 	map[string]Market 	`json:"markets,omitempty"`
-	Time 		int64				`json:"time,omitempty"`
-}
-
-
-type Spread struct {
-	Bid 	string 					`json:"bid,omitempty"`
-	Ask 	string 					`json:"ask,omitempty"`
-}
-
-type TokenPairSpread struct {
-	Spread 	Spread 					`json:"spread,omitempty"`
-	Time 	int64 					`json:"time,omitempty"`
-}
-
-type AllSpreads struct {
-	Spreads 	map[string]Spread 	`json:"spreads,omitempty"`
-	Time 		int64 				`json:"time,omitempty"`
-}
-
-type Prices struct {
+type TokenPairPrices struct {
 	Vwap24Hr 	string				`json:"24hrvwap,omitempty"`
 	Vwap12Hr	string 				`json:"12hrvwap,omitempty"`
 	Vwap6Hr		string				`json:"6hrvwap,omitempty"`
@@ -46,25 +28,20 @@ type Prices struct {
 	Last 		string				`json:"last,omitempty"`
 }
 
-type TokenPairPrices struct {
-	Prices 		Prices 				`json:"prices,omitempty"`
-	Time 		int64 				`json:"time,omitempty"`
-}
-
-type AllPrices struct {
-	Prices 	map[string]Prices		`json:"prices,omitempty"`
-	Time 	int64					`json:"time,omitempty"`		
-}
+type AllPrices map[string]TokenPairPrices
 
 type TokenPairVolume struct {
 	Volume 		string				`json:"vol,omitempty"`
-	Time 		int64 				`json:"time,omitempty"`
 }
 
-type AllVolumes struct {
-	Volumes 	map[string]string	`json:"volumes,omitmepty"`
-	Time 		int64 				`json:"time,omitempty"`
+type AllVolumes map[string]TokenPairVolume
+
+type TokenPairSpread struct {
+	Bid 	string 					`json:"bid,omitempty"`
+	Ask 	string 					`json:"ask,omitempty"`
 }
+
+type AllSpreads map[string]TokenPairSpread 
 
 type TokenPairTradeHistory []Trade
 
