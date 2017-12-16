@@ -14,8 +14,8 @@ import (
 )
 
 func APIGetAllPairs(w http.ResponseWriter, req *http.Request) {
-	marketStatus := client.GetAllPairs()
-	json.NewEncoder(w).Encode(Response{marketStatus, time.Now().Unix(), "success"})
+	allPairs := client.GetAllPairs()
+	json.NewEncoder(w).Encode(Response{allPairs, time.Now().Unix(), "success"})
 }
 
 func APIGetPair(w http.ResponseWriter, req *http.Request) {
@@ -30,13 +30,13 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	market, err := client.GetPair(baseToken, quoteToken)
+	pair, err := client.GetPair(baseToken, quoteToken)
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying market for %s failed", tokenPair)})
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{market, time.Now().Unix(), "success"})
+	json.NewEncoder(w).Encode(Response{pair, time.Now().Unix(), "success"})
 }
 
 func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {

@@ -10,7 +10,6 @@ type Market struct{
 	BasePrecision 	string 	`json:"basePrecision,omitempty"`
 	QuotePrecision 	string 	`json:"quotePrecision,omitempty"`
 	Active 	bool 	`json:"active,omitempty"`
-	Time 	int64 	`json:"time,omitempty"`
 }
 
 //type Markets map[string]*Market
@@ -21,127 +20,109 @@ var LiveMarkets = map[string]*Market{
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"MKR/SAI": &Market{
 		"MKR",
 		"SAI",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"ETH/SAI": &Market{
 		"ETH",
 		"SAI",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"DGD/ETH": &Market{
 		"DGD",
 		"ETH",
 		"9",
 		"18",
-		true,
-		0},
+		true},
 	"GNT/ETH": &Market{
 		"GNT",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"REP/ETH": &Market{
 		"REP",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"ICN/ETH": &Market{
 		"ICN",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"1ST/ETH": &Market{
 		"1ST",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"SNGLS/ETH": &Market{
 		"SNGLS",
 		"ETH",
 		"0",
 		"18",
-		true,
-		0},
+		true},
 	"VSL/ETH": &Market{
 		"VSL",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"PLU/ETH": &Market{
 		"PLU",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"MLN/ETH": &Market{
 		"MLN",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"RHOC/ETH": &Market{
 		"RHOC",
 		"ETH",
 		"8",
 		"18",
-		true,
-		0},
+		true},
 	"TIME/ETH": &Market{
 		"TIME",
 		"ETH",
 		"8",
 		"18",
-		true,
-		0},
+		true},
 	"GUP/ETH": &Market{
 		"GUP",
 		"ETH",
 		"3",
 		"18",
-		true,
-		0},
+		true},
 	"BAT/ETH": &Market{
 		"BAT",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	"NMR/ETH": &Market{
 		"NMR",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},
+		true},
 	/*"RDN/ETH": &Market{
 		"RDN",
 		"ETH",
 		"18",
 		"18",
-		true,
-		0},*/
+		true},*/
 }
 
 type tokenInfo struct {

@@ -616,8 +616,6 @@ func GetAllPairs() (map[string]*data.Market) {
 		} else {
 			data.LiveMarkets[tokenPair].Active = false
 		}
-		//update timestamp
-		data.LiveMarkets[tokenPair].Time = time.Now().Unix()
 	}
 	return data.LiveMarkets
 }
