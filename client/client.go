@@ -351,7 +351,7 @@ func GetTokenPairTradeHistory(baseToken string, quoteToken string) ([]TradeLog, 
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
 
-	params, err := CreateEventFilterInterval(24, []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x3383e3357c77fd2e3a4b30deea81179bc70a795d053d14d5b7f2f01d0fd4596f"}})
+	params, err := CreateEventFilterInterval(24, []string{data.OASIS.Contract}, [][]string{[]string{"0x3383e3357c77fd2e3a4b30deea81179bc70a795d053d14d5b7f2f01d0fd4596f"}})
 	if err != nil {
 		return nil, fmt.Errorf("[GetTokenPairTradeHistory] failed due to(%s)\n", err)
 	}
@@ -446,7 +446,7 @@ func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, st
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("GetSpread] failed due to (%s)\n", err)
 	}
 	//create event filter
-	filter, err := CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilter("24hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CreateEventFilter] failed due to (%s)\n", err)
 	}
@@ -465,7 +465,7 @@ func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, st
 
 func GetTokenPairVolumeWeightedPrice(baseToken string, quoteToken string, interval int) (string, string, error) {
 	//create event filter
-	filter, err := CreateEventFilterInterval(interval, []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilterInterval(interval, []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", "null", fmt.Errorf("[CreateEventFilterInterval] failed due to (%s)\n", err)
 	}
@@ -514,7 +514,7 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	//create tx object for querying id of best offer
 	tx := CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		data.OASIS.Contract,
 		0,
 		big.NewInt(0),
 		big.NewInt(0),
@@ -537,7 +537,7 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	//create new tx object for querying best offer
 	tx = CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		data.OASIS.Contract,
 		0,
 		big.NewInt(0),
 		big.NewInt(0),
@@ -599,7 +599,7 @@ func GetAllPairs() (map[string]*data.Market) {
 		//create transaction
 		tx := CreateTx(
 			"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-			"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+			data.OASIS.Contract,
 			0,
 			big.NewInt(0),
 			big.NewInt(0),
@@ -631,7 +631,7 @@ func GetPair(baseToken string, quoteToken string) (*data.Market, error) {
 	//create transaction
 	tx := CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1",
+		data.OASIS.Contract,
 		0,
 		big.NewInt(0),
 		big.NewInt(0),
@@ -662,7 +662,7 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	//create event filter
-	filter, err := CreateEventFilter("24hour", "latest", []string{"0x3Aa927a97594c3ab7d7bf0d47C71c3877D1DE4A1"}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilter("24hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", fmt.Errorf("[GetTokenPairVolume] could not CreateEventFilter() due to (%s)\n", err)
 	}

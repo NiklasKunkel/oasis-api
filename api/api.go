@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"log"
-	//"reflect"
 	"strings"
 	"time"
 	"github.com/gorilla/mux"
@@ -262,5 +261,5 @@ func InitAPIServer() {
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
 
-	log.Fatal(http.ListenAndServe(":8080", router))												//Deploy server
+	log.Fatal(http.ListenAndServe(":8080", router))											//Deploy server
 }

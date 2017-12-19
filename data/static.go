@@ -1,8 +1,31 @@
 package data
 
 import (
+"encoding/json"
+"io/ioutil"
+"log"
+"path/filepath"
 "strings"
 )
+
+type OasisMarket struct {
+	Contract 	string 	`json:"OASIS_CONTRACT_ADDRESS"`
+}
+
+var OASIS OasisMarket
+
+func ReadConfig() {
+	absPath, _ := filepath.Abs("./src/github.com/niklaskunkel/oasis-api/config.json")
+	raw, err := ioutil.ReadFile(absPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(raw, &OASIS)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return
+}
 
 type Market struct{
 	Base	string 	`json:"base,omitempty"`
@@ -21,15 +44,27 @@ var LiveMarkets = map[string]*Market{
 		"18",
 		"18",
 		true},
-	"MKR/SAI": &Market{
-		"MKR",
-		"SAI",
+	"ETH/DAI": &Market{
+		"ETH",
+		"DAI",
 		"18",
 		"18",
 		true},
-	"ETH/SAI": &Market{
-		"ETH",
+	"MKR/DAI": &Market{
+		"MKR",
+		"DAI",
+		"18",
+		"18",
+		true},
+	"SAI/DAI": &Market{
 		"SAI",
+		"DAI",
+		"18",
+		"18",
+		true},
+	"GNT/ETH": &Market{
+		"GNT",
+		"ETH",
 		"18",
 		"18",
 		true},
@@ -37,12 +72,6 @@ var LiveMarkets = map[string]*Market{
 		"DGD",
 		"ETH",
 		"9",
-		"18",
-		true},
-	"GNT/ETH": &Market{
-		"GNT",
-		"ETH",
-		"18",
 		"18",
 		true},
 	"REP/ETH": &Market{
@@ -63,10 +92,10 @@ var LiveMarkets = map[string]*Market{
 		"18",
 		"18",
 		true},
-	"SNGLS/ETH": &Market{
-		"SNGLS",
+	"NMR/ETH": &Market{
+		"NMR",
 		"ETH",
-		"0",
+		"18",
 		"18",
 		true},
 	"VSL/ETH": &Market{
@@ -111,18 +140,12 @@ var LiveMarkets = map[string]*Market{
 		"18",
 		"18",
 		true},
-	"NMR/ETH": &Market{
-		"NMR",
+	"SNGLS/ETH": &Market{
+		"SNGLS",
 		"ETH",
-		"18",
+		"0",
 		"18",
 		true},
-	/*"RDN/ETH": &Market{
-		"RDN",
-		"ETH",
-		"18",
-		"18",
-		true},*/
 }
 
 type tokenInfo struct {
@@ -132,20 +155,23 @@ type tokenInfo struct {
 
 var TokenInfoLib = map[string]tokenInfo{
 	"MKR": tokenInfo{
-		Contract: strings.ToLower("0x000000000000000000000000C66eA802717bFb9833400264Dd12c2bCeAa34a6d"),
+		Contract: strings.ToLower("0x0000000000000000000000009f8F72aA9304c8B593d555F12eF6589cC3A579A2"),
 		Precision: 18},
 	"ETH": tokenInfo{
-		Contract: strings.ToLower("0x000000000000000000000000ecf8f87f810ecf450940c9f60066b4a7a501d6a7"),
+		Contract: strings.ToLower("0x000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"),
+		Precision: 18},
+	"DAI": tokenInfo{
+		Contract: strings.ToLower("0x00000000000000000000000089d24a6b4ccb1b6faa2625fe562bdd9a23260359"),
 		Precision: 18},
 	"SAI": tokenInfo{
 		Contract: strings.ToLower("0x00000000000000000000000059adcf176ed2f6788a41b8ea4c4904518e62b6a4"),
 		Precision: 18},
+	"GNT": tokenInfo{
+		Contract: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
+		Precision: 18},
 	"DGD": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000e0b7927c4af23765cb51314a0e0521a9645f0e2a"),
 		Precision: 9},
-	"RHOC": tokenInfo{
-		Contract: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
-		Precision: 8},
 	"REP": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000e94327d07fc17907b4db788e5adf2ed424addff6"),
 		Precision: 18},
@@ -155,8 +181,8 @@ var TokenInfoLib = map[string]tokenInfo{
 	"1ST": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000af30d2a7e90d7dc361c8c4585e9bb7d2f6f15bc7"),
 		Precision: 18},
-	"GNT": tokenInfo{
-		Contract: strings.ToLower("0x00000000000000000000000001afc37f4f85babc47c0e2d0eababc7fb49793c8"),
+	"NMR": tokenInfo{
+		Contract: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
 		Precision: 18},
 	"VSL": tokenInfo{
 		Contract: strings.ToLower("0x0000000000000000000000005c543e7ae0a1104f78406c340e9c64fd9fce5170"),
@@ -167,9 +193,9 @@ var TokenInfoLib = map[string]tokenInfo{
 	"MLN": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000beb9ef514a379b997e0798fdcc901ee474b6d9a1"),
 		Precision: 18},
-	"NMR": tokenInfo{
-		Contract: strings.ToLower("0x0000000000000000000000001776e1f26f98b1a5df9cd347953a26dd3cb46671"),
-		Precision: 18},
+	"RHOC": tokenInfo{
+		Contract: strings.ToLower("0x000000000000000000000000168296bb09e24a88805cb9c33356536b980d3fc5"),
+		Precision: 8},
 	"TIME": tokenInfo{
 		Contract: strings.ToLower("0x0000000000000000000000006531f133e6deebe7f2dce5a0441aa7ef330b4e53"),
 		Precision: 8},
@@ -182,7 +208,4 @@ var TokenInfoLib = map[string]tokenInfo{
 	"SNGLS": tokenInfo{
 		Contract: strings.ToLower("0x000000000000000000000000aec2e87e0a235266d9c5adc9deb4b2e29b54d009"),
 		Precision: 0},
-	"RDN": tokenInfo{
-		Contract: strings.ToLower("0x000000000000000000000000255aa6df07540cb5d3d297f0d0d4d84cb52bc8e6"),
-		Precision: 18},
 }
