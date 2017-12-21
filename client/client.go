@@ -204,38 +204,24 @@ func CreateEventFilterInterval(interval int, address []string, topics [][]string
 }
 
 func CreateEventFilter(fromBlock string, toBlock string, address []string, topics [][]string) (ethrpc.FilterParams, error) {
-	var toBlockNum int
-	var fromBlockNum int
 	var err error
 
 	//Pull/Parse toBlock
-	if  toBlock == "" || strings.ToLower(toBlock) == "latest" {
-		toBlockNum, err = EthClient.EthBlockNumber()
-		if err != nil {
-			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed when pulling latest block from client with error (%s)\n", err)
-		}
-	} else {
-		toBlockNum64, err := strconv.ParseInt(toBlock, 10, 32)
-		if err != nil {
-			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param toBlock (%s) with error (%s)\n", toBlock, err)
-		} else if toBlockNum <= 0 || int(toBlockNum) > LatestBlockNumber() {
-			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param toBlock (%s), block must be larger than zero and less than %d\n", toBlock, LatestBlockNumber())
-		}
-		toBlockNum = int(toBlockNum64)
+	toBlockNum64, err := strconv.ParseInt(toBlock, 10, 32)
+	if err != nil {
+		return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param toBlock (%s) with error (%s)\n", toBlock, err)
+	} else if toBlockNum64 <= 0 || toBlockNum64 > int64(LatestBlockNumber()) {
+		return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param toBlock (%s), block must be larger than zero and less than %d\n", toBlock, LatestBlockNumber())
 	}
-	//Parse/Calculate fromBlock
-	if fromBlock == "" || strings.ToLower(fromBlock) == "6hour" {
-		blockInterval := parser.Hours2Block(6)
-		fromBlockNum = toBlockNum - blockInterval
-	} else {
-		fromBlockNum64, err := strconv.ParseInt(fromBlock, 10, 32)
-		if err != nil {
-			fmt.Errorf("[CreateEventFilter] failed due to invalid fromBlock (%s) with error (%s)\n", fromBlock, err)
-		} else if fromBlockNum64 <= 0 || int(fromBlockNum64) > toBlockNum {
-			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param fromBlock (%s), block must be larger than zero and less than %d\n", fromBlock, toBlockNum)
-		}
-		fromBlockNum = int(fromBlockNum64)
+	//toBlockNum = int(toBlockNum64)
+
+	fromBlockNum64, err := strconv.ParseInt(fromBlock, 10, 32)
+	if err != nil {
+		fmt.Errorf("[CreateEventFilter] failed due to invalid fromBlock (%s) with error (%s)\n", fromBlock, err)
+	} else if fromBlockNum64 <= 0 || fromBlockNum64 > toBlockNum64 {
+		return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventFilter] failed due to invalid param fromBlock (%s), block must be larger than zero and less than %d\n", fromBlock, toBlockNum64)
 	}
+	//fromBlockNum = int(fromBlockNum64)
 
 	//Verify valid contract address(es)
 	for _, contractAddr := range address {
@@ -243,16 +229,15 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 			return ethrpc.FilterParams{}, fmt.Errorf("[CreateEventsFilter] failed due to invalid contract address (%s)\n", contractAddr)
 		}
 	}
-
 	params := ethrpc.FilterParams{
-		FromBlock: "0x" + strconv.FormatInt(int64(fromBlockNum), 16),
-		ToBlock: "0x" + strconv.FormatInt(int64(toBlockNum), 16),
+		//FromBlock: "0x" + strconv.FormatInt(int64(fromBlockNum), 16),
+		//ToBlock: "0x" + strconv.FormatInt(int64(toBlockNum), 16),
+		FromBlock: "0x" + strconv.FormatInt(fromBlockNum64, 16),
+		ToBlock: "0x" + strconv.FormatInt(toBlockNum64, 16),
 		Address: address,
 		Topics: topics,
 	}
-
 	fmt.Printf("%+v\n", params)
-
 	return params, nil
 }
 
@@ -439,14 +424,82 @@ func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken
 	return price.Text('f', 8), lastPrice.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
 }
 
+func CalculatePriceFromLogs(logs []ethrpc.Log, baseToken string, quoteToken string)  (string, string, string, string, string, error) {
+	sumBaseVol := big.NewInt(0)
+	sumQuoteVol := big.NewInt(0)
+	max := new(big.Float).SetInt(sumBaseVol)
+ 	min := new(big.Float).SetInt(sumBaseVol)
+ 	lastPrice := new(big.Float).SetInt(sumBaseVol)
+ 	price := new(big.Float)
+
+	baseTokenContract := data.TokenInfoLib[baseToken].Contract
+	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
+
+	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
+	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
+
+	atLeastOneRelevantLog := false
+	for i, log := range logs {
+		if (len(log.Topics) != 3) {
+			fmt.Println("Skipped Log")
+			//skip log - this should never happen
+			continue
+		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
+			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
+			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max, lastPrice)
+			if (atLeastOneRelevantLog == false) {
+				atLeastOneRelevantLog = true
+			}
+		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
+			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
+			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max, lastPrice)
+			if (atLeastOneRelevantLog == false) {
+				atLeastOneRelevantLog = true
+			}
+		}
+	}
+	if (atLeastOneRelevantLog == false) {
+		//found no relevant logs for this trading pair
+		return "null", "null", "0", "null", "null", nil
+	}
+
+	//Debug - print sum of trade quote and denom tokens
+	fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
+	fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
+
+	//Adjust for token precision
+	adjustedSumBaseVol := parser.AdjustIntForPrecision(sumBaseVol, data.TokenInfoLib[baseToken].Precision)
+	adjustedSumQuoteVol := parser.AdjustIntForPrecision(sumQuoteVol, data.TokenInfoLib[quoteToken].Precision)
+	min = parser.AdjustFloatForPrecision(min, GetPrecisionDelta(baseToken, quoteToken))
+	max = parser.AdjustFloatForPrecision(max, GetPrecisionDelta(baseToken, quoteToken))
+
+	if (adjustedSumBaseVol == new(big.Float)) {
+		//cant divide by zero
+		//this should never happen due to isFirstLog check earlier
+		return "null", "null", "0", "null", "null", nil
+	}
+
+	//calculate volume weighted priced
+	price.Quo(adjustedSumQuoteVol, adjustedSumBaseVol)
+
+	//Debug - print volume weighted price
+	fmt.Printf("Volume Weighted Price = %s\n", price.Text('f', 8))
+	fmt.Printf("Volume = %s\n", adjustedSumBaseVol.Text('f', 8))
+	fmt.Printf("Max price = %s\n", max.Text('f', 8))
+	fmt.Printf("Min price = %s\n", min.Text('f', 8))
+	fmt.Printf("Last Price = %s\n", lastPrice.Text('f', 8))
+
+	return price.Text('f', 8), lastPrice.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
+}
+
 func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, string, string, string, string, string, error) {
 	//get bid/ask spread
-	bid, ask, err := GetSpread(baseToken, quoteToken)
+	sBid, sAsk, err := GetSpread(baseToken, quoteToken)
 	if err != nil {
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("GetSpread] failed due to (%s)\n", err)
 	}
 	//create event filter
-	filter, err := CreateEventFilter("6hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilterInterval(parser.Hours2Block(24), []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CreateEventFilter] failed due to (%s)\n", err)
 	}
@@ -456,11 +509,16 @@ func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, st
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[GetLogs] failed due to (%s)\n", err)
 	}
 	//calculate price, volume, min, and max from event logs
-	sPrice, sLast, sVolume, sMin, sMax, err := CalculateMarketDataFromLogs(logs, baseToken, quoteToken)
+	_, sLast, sVolume, sMin, sMax, err := CalculateMarketDataFromLogs(logs, baseToken, quoteToken)
 	if err != nil {
-		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CalculateMarketDataFromLogs] failed) due to (%s)\n", err)
+		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CalculateMarketDataFromLogs] failed due to (%s)\n", err)
 	}
-	return sPrice, sLast, sVolume, sMin, sMax, bid, ask, err
+	
+	sPrice, _, err := GetTokenPairVolumeWeightedPrice(baseToken, quoteToken, 6)
+	if err != nil {
+		return "null", sLast, sVolume, sMin, sMax, sBid, sAsk, fmt.Errorf("[CalculateMarketDataFromlogs] faile due to (%s)\n", err)
+	}
+	return sPrice, sLast, sVolume, sMin, sMax, sBid, sAsk, nil
 }
 
 func GetTokenPairVolumeWeightedPrice(baseToken string, quoteToken string, interval int) (string, string, error) {
@@ -716,7 +774,7 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 func GetMkrTokenSupply() (string, error) {
 	tx := CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0xc66ea802717bfb9833400264dd12c2bceaa34a6d",
+		"0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
 		0,
 		big.NewInt(0),
 		big.NewInt(0),
@@ -728,7 +786,7 @@ func GetMkrTokenSupply() (string, error) {
 	} else {
 		iSupply := parser.Hex2Int(hSupply)
 		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
-		return fSupply.Text('f',0), nil
+		return fSupply.Text('f',6), nil
 	}
 }
 

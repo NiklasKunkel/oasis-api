@@ -39,6 +39,8 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
+	//debug timer
+	start := time.Now()
 	allMarkets := Response{make(AllMarkets), time.Now().Unix(), "null"}
 	//iterate over all token pairs
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
@@ -59,6 +61,7 @@ func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
 	}
 	allMarkets.Message = "success"
 	json.NewEncoder(w).Encode(allMarkets)
+	fmt.Printf("\nGET ALL MARKETS TOOK %s", time.Since(start))
 }
 
 
