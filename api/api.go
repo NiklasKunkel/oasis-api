@@ -229,11 +229,11 @@ func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
 
 //Get MKR Token Supply
 func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
-	supply, err := client.GetMkrTokenSupply()
+	totalSupply, circulatingSupply, err := client.GetMkrTokenSupply()
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
 	} else {
-		json.NewEncoder(w).Encode(TokenSupply{supply,supply, time.Now().Unix()})
+		json.NewEncoder(w).Encode(TokenSupply{totalSupply,circulatingSupply, time.Now().Unix()})
 	}
 	return
 }

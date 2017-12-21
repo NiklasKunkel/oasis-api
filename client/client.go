@@ -713,7 +713,8 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	return adjustedBaseVol.Text('f', 8), nil
 }
 
-func GetMkrTokenSupply() (string, error) {
+func GetMkrTokenSupply() (string, string, error) {
+	//Get total supply of MKR
 	tx := CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
 		"0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
@@ -722,14 +723,32 @@ func GetMkrTokenSupply() (string, error) {
 		big.NewInt(0),
 		"0x18160ddd",
 		0)
-	hSupply, err := CallTx(tx)	//get supply in hex string format
+	hTotalSupply, err := CallTx(tx)	//get supply in hex string format
 	if err != nil {
-		return "", fmt.Errorf("[GetMkrTokenSupply] failed to query supply due to error (%s)\n", err)
-	} else {
-		iSupply := parser.Hex2Int(hSupply)
-		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
-		return fSupply.Text('f',6), nil
+		return "", "", fmt.Errorf("[GetMkrTokenSupply] failed to query total supply due to error (%s)\n", err)
 	}
+	//get balance of Maker fund
+	tx = CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		"0x70a082310000000000000000000000007bb0b08587b8a6b8945e09f1baca426558b0f06a",
+		0)
+	hMkrFundSupply, err := CallTx(tx)
+	if err != nil {
+		return "", "", fmt.Errorf("[GetMkrTokenSupply] failed to query mkr fund balance due to error (%s)\n", err)
+	}
+	//Convert from hex string to integer
+	iTotalSupply := parser.Hex2Int(hTotalSupply)
+	iMkrFundSupply := parser.Hex2Int(hMkrFundSupply)
+	//caculate circulating supply
+	iCirculatingSupply := new(big.Int).Sub(iTotalSupply, iMkrFundSupply)
+	//adjust for token precision
+	fTotalSupply := parser.AdjustIntForPrecision(iTotalSupply, 18)
+	fCirculatingSupply := parser.AdjustIntForPrecision(iCirculatingSupply, 18)
+	return fTotalSupply.Text('f',6), fCirculatingSupply.Text('f', 6), nil
 }
 
 func GetDaiTokenSupply() (string, error) {
