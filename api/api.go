@@ -233,8 +233,18 @@ func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
 	} else {
-		json.NewEncoder(w).Encode(MkrTokenSupply{supply,supply, time.Now().Unix()})
-		
+		json.NewEncoder(w).Encode(TokenSupply{supply,supply, time.Now().Unix()})
+	}
+	return
+}
+
+//Get DAI Token Supply
+func APIGetDaiTokenSupply(w http.ResponseWriter, req *http.Request) {
+	supply, err := client.GetDaiTokenSupply()
+	if err != nil {
+		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying DAI token supply failed")})
+	} else {
+		json.NewEncoder(w).Encode(TokenSupply{supply, supply, time.Now().Unix()})
 	}
 	return
 }
@@ -257,7 +267,8 @@ func InitAPIServer() {
 	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
 	router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTradeHistory).Methods("GET")	//REST endpoint for calling trade history of token pair
 	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")	//not implemented yet
-	router.HandleFunc("/v1/tokens/mkr/totalsupply", APIGetMkrTokenSupply).Methods("GET")	//REST endpoint for calling MKR token supply
+	router.HandleFunc("/v1/tokens/mkr/supply", APIGetMkrTokenSupply).Methods("GET")			//REST endpoint for calling MKR token supply
+	router.HandleFunc("/v1/tokens/dai/supply", APIGetDaiTokenSupply).Methods("GET")			//REST endpoint for calling DAI token supply
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
 

@@ -716,7 +716,7 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 func GetMkrTokenSupply() (string, error) {
 	tx := CreateTx(
 		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
-		"0xc66ea802717bfb9833400264dd12c2bceaa34a6d",
+		"0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
 		0,
 		big.NewInt(0),
 		big.NewInt(0),
@@ -728,7 +728,26 @@ func GetMkrTokenSupply() (string, error) {
 	} else {
 		iSupply := parser.Hex2Int(hSupply)
 		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
-		return fSupply.Text('f',0), nil
+		return fSupply.Text('f',6), nil
+	}
+}
+
+func GetDaiTokenSupply() (string, error) {
+	tx := CreateTx(
+		"0x003EbC0613139A8dF37CAC03d39B39304153596A",
+		"0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359",
+		0,
+		big.NewInt(0),
+		big.NewInt(0),
+		"0x18160ddd",
+		0)
+	hSupply, err := CallTx(tx)	//get supply in hex string format
+	if err != nil {
+		return "", fmt.Errorf("[GetDaiTokenSupply] failed to query supply due to error (%s)\n", err)
+	} else {
+		iSupply := parser.Hex2Int(hSupply)
+		fSupply := parser.AdjustIntForPrecision(iSupply, 18)
+		return fSupply.Text('f', 6), nil
 	}
 }
 

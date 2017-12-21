@@ -55,7 +55,7 @@ type Trade struct {
 	Time 		string				`json:"time,omitempty"`
 }
 
-type MkrTokenSupply struct {
+type TokenSupply struct {
 	TotalSupply 		string		`json:"totalSupply,omitempty"`
 	CirculatingSupply	string		`json:"circulatingSupply,omitempty"`
 	Time 				int64 		`json:"time,omitempty"`
