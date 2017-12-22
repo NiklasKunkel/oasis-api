@@ -58,7 +58,6 @@ type Trade struct {
 type TokenSupply struct {
 	TotalSupply 		string		`json:"totalSupply,omitempty"`
 	CirculatingSupply	string		`json:"circulatingSupply,omitempty"`
-	Time 				int64 		`json:"time,omitempty"`
 }
 
 type Error struct {
