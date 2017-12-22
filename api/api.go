@@ -231,9 +231,9 @@ func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
 func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 	totalSupply, circulatingSupply, err := client.GetMkrTokenSupply()
 	if err != nil {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying MKR token supply failed")})
+		json.NewEncoder(w).Encode(Response{TokenSupply{}, time.Now().Unix(), "Querying MKR token supply failed"})
 	} else {
-		json.NewEncoder(w).Encode(TokenSupply{totalSupply,circulatingSupply, time.Now().Unix()})
+		json.NewEncoder(w).Encode(Response{TokenSupply{totalSupply,circulatingSupply}, time.Now().Unix(), "success"})
 	}
 	return
 }
@@ -242,9 +242,9 @@ func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 func APIGetDaiTokenSupply(w http.ResponseWriter, req *http.Request) {
 	supply, err := client.GetDaiTokenSupply()
 	if err != nil {
-		json.NewEncoder(w).Encode(Error{fmt.Sprintf("Querying DAI token supply failed")})
+		json.NewEncoder(w).Encode(Response{TokenSupply{}, time.Now().Unix(), "Querying DAI token supply failed"})
 	} else {
-		json.NewEncoder(w).Encode(TokenSupply{supply, supply, time.Now().Unix()})
+		json.NewEncoder(w).Encode(Response{TokenSupply{supply, supply}, time.Now().Unix(), "success"})
 	}
 	return
 }
