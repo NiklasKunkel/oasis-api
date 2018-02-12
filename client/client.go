@@ -224,8 +224,8 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 		toBlockNum = int(toBlockNum64)
 	}
 	//Parse/Calculate fromBlock
-	if fromBlock == "" || strings.ToLower(fromBlock) == "6hour" {
-		blockInterval := parser.Hours2Block(6)
+	if fromBlock == "" || strings.ToLower(fromBlock) == "24hour" {
+		blockInterval := parser.Hours2Block(24)
 		fromBlockNum = toBlockNum - blockInterval
 	} else {
 		fromBlockNum64, err := strconv.ParseInt(fromBlock, 10, 32)
@@ -351,7 +351,7 @@ func GetTokenPairTradeHistory(baseToken string, quoteToken string) ([]TradeLog, 
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
 
-	params, err := CreateEventFilterInterval(6, []string{data.OASIS.Contract}, [][]string{[]string{"0x3383e3357c77fd2e3a4b30deea81179bc70a795d053d14d5b7f2f01d0fd4596f"}})
+	params, err := CreateEventFilterInterval(24, []string{data.OASIS.Contract}, [][]string{[]string{"0x3383e3357c77fd2e3a4b30deea81179bc70a795d053d14d5b7f2f01d0fd4596f"}})
 	if err != nil {
 		return nil, fmt.Errorf("[GetTokenPairTradeHistory] failed due to(%s)\n", err)
 	}
@@ -446,7 +446,7 @@ func GetTokenPairMarket(baseToken string, quoteToken string) (string, string, st
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("GetSpread] failed due to (%s)\n", err)
 	}
 	//create event filter
-	filter, err := CreateEventFilter("6hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilter("24hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", "null", "null", "null", "null", "null", "null", fmt.Errorf("[CreateEventFilter] failed due to (%s)\n", err)
 	}
@@ -662,12 +662,12 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	//create event filter
-	filter, err := CreateEventFilter("6hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
+	filter, err := CreateEventFilter("24hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
 	if err != nil {
 		return "null", fmt.Errorf("[GetTokenPairVolume] could not CreateEventFilter() due to (%s)\n", err)
 	}
 
-	//get all events from last 6 hour interval
+	//get all events from last 24 hour interval
 	logs, err := GetLogs(filter)
 	if err != nil {
 		return "null", fmt.Errorf("[GetTokenPairVolume] could not GetLogs() due to (%s)\n", err)
