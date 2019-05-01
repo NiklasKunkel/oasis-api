@@ -131,7 +131,7 @@ func CreateTx(
 		Nonce: nonce,
 	}
 	//print tx object for debug
-	fmt.Printf("%+v\n", tx)
+	//fmt.Printf("%+v\n", tx)
 	return tx
 }
 
@@ -199,7 +199,7 @@ func CreateEventFilterInterval(interval int, address []string, topics [][]string
 		Topics: topics,
 	}
 
-	fmt.Printf("%+v\n", params)
+	//fmt.Printf("%+v\n", params)
 	return params, nil
 }
 
@@ -251,7 +251,7 @@ func CreateEventFilter(fromBlock string, toBlock string, address []string, topic
 		Topics: topics,
 	}
 
-	fmt.Printf("%+v\n", params)
+	//fmt.Printf("%+v\n", params)
 
 	return params, nil
 }
@@ -284,35 +284,35 @@ func ExtractLogTradeData(log ethrpc.Log, index int, isBaseFirst bool, sumBaseVol
 		sBaseVol = log.Data[67:130]
 	}
 	//Debug - logging
-	fmt.Printf("baseVol for log %d = %s\n", index, sBaseVol)
-	fmt.Printf("quoteVol for log %d = %s\n", index, sQuoteVol)
+	//fmt.Printf("baseVol for log %d = %s\n", index, sBaseVol)
+	//fmt.Printf("quoteVol for log %d = %s\n", index, sQuoteVol)
 
-	intVol = parser.Hex2Int(sBaseVol)		//convert base token volume from hex string to integer
-	sumBaseVol.Add(sumBaseVol, intVol)		//add base token volume to cumulative base Volume
-	fBaseVol.SetInt(intVol)					//convert base token volume from integer to float
+	intVol = parser.Hex2Int(sBaseVol)	//convert base token volume from hex string to integer
+	sumBaseVol.Add(sumBaseVol, intVol)	//add base token volume to cumulative base Volume
+	fBaseVol.SetInt(intVol)			//convert base token volume from integer to float
 
-	intVol = parser.Hex2Int(sQuoteVol)		//convert quote token volume from hex string to integer
+	intVol = parser.Hex2Int(sQuoteVol)	//convert quote token volume from hex string to integer
 	sumQuoteVol.Add(sumQuoteVol, intVol)	//add quote token volume to cumulative quote Volume
 	fQuoteVol.SetInt(intVol)				//convert quote token volume from integer to float
 
-	fPrice.Quo(fQuoteVol, fBaseVol)			//calculate price of base token in reference to quote token
-	lastPrice.Set(fPrice)					//set lastPrice parameter
+	fPrice.Quo(fQuoteVol, fBaseVol)		//calculate price of base token in reference to quote token
+	lastPrice.Set(fPrice)			//set lastPrice parameter
 	if ((min.Cmp(fPrice) == 1) || (min.Sign() == 0)) { //if price is lower than minimum price
-		min.Set(fPrice)						//set new minimum price
+		min.Set(fPrice)			//set new minimum price
 	}
-	if (max.Cmp(fPrice) == -1) {			//if price is higer than maximumum price
-		max.Set(fPrice)						//set new maximum price
+	if (max.Cmp(fPrice) == -1) {		//if price is higer than maximumum price
+		max.Set(fPrice)			//set new maximum price
 	}
 }
 
 type TradeLog struct {
-	Price 		string	`json:"price,omitempty"`
-	BuyToken	string 	`json:"buyToken,omitempty"`
-	PayToken	string 	`json:"payToken,omitempty"`
-	BuyAmount	string 	`json:"buyAmount,omitempty"`
-	PayAmount	string 	`json:"payAmount,omitempty"`
-	Type 		string 	`json:"type,omitempty"`
-	Time 		string	`json:"time,omitempty"`
+	Price 		string `json:"price,omitempty"`
+	BuyToken	string `json:"buyToken,omitempty"`
+	PayToken	string `json:"payToken,omitempty"`
+	BuyAmount	string `json:"buyAmount,omitempty"`
+	PayAmount	string `json:"payAmount,omitempty"`
+	Type 		string `json:"type,omitempty"`
+	Time 		string `json:"time,omitempty"`
 }
 
 func ExtractTradeHistoryFromLog(baseToken string, quoteToken string, log ethrpc.Log, isBaseFirst bool, tradeHistory *[]TradeLog) {
@@ -382,8 +382,8 @@ func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
 
-	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
-	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
+	//fmt.Printf("Denom token contract = %s\n", baseTokenContract)
+	//fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	atLeastOneRelevantLog := false
 	for i, log := range logs {
@@ -392,13 +392,13 @@ func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken
 			//skip log - this should never happen
 			continue
 		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
-			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
+			//fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
 			ExtractLogTradeData(log, i, true, sumBaseVol, sumQuoteVol, min, max, lastPrice)
 			if (atLeastOneRelevantLog == false) {
 				atLeastOneRelevantLog = true
 			}
 		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
-			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
+			//fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
 			ExtractLogTradeData(log, i, false, sumBaseVol, sumQuoteVol, min, max, lastPrice)
 			if (atLeastOneRelevantLog == false) {
 				atLeastOneRelevantLog = true
@@ -411,8 +411,8 @@ func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken
 	}
 
 	//Debug - print sum of trade quote and denom tokens
-	fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
-	fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
+	//fmt.Printf("sumBaseVol = %s\n", sumBaseVol.Text(10))
+	//fmt.Printf("sumQuoteVol = %s\n", sumQuoteVol.Text(10))
 
 	//Adjust for token precision
 	adjustedSumBaseVol := parser.AdjustIntForPrecision(sumBaseVol, data.TokenInfoLib[baseToken].Precision)
@@ -430,11 +430,11 @@ func CalculateMarketDataFromLogs(logs []ethrpc.Log, baseToken string, quoteToken
 	price.Quo(adjustedSumQuoteVol, adjustedSumBaseVol)
 
 	//Debug - print volume weighted price
-	fmt.Printf("Volume Weighted Price = %s\n", price.Text('f', 8))
-	fmt.Printf("Volume = %s\n", adjustedSumBaseVol.Text('f', 8))
-	fmt.Printf("Max price = %s\n", max.Text('f', 8))
-	fmt.Printf("Min price = %s\n", min.Text('f', 8))
-	fmt.Printf("Last Price = %s\n", lastPrice.Text('f', 8))
+	//fmt.Printf("Volume Weighted Price = %s\n", price.Text('f', 8))
+	//fmt.Printf("Volume = %s\n", adjustedSumBaseVol.Text('f', 8))
+	//fmt.Printf("Max price = %s\n", max.Text('f', 8))
+	//fmt.Printf("Min price = %s\n", min.Text('f', 8))
+	//fmt.Printf("Last Price = %s\n", lastPrice.Text('f', 8))
 
 	return price.Text('f', 8), lastPrice.Text('f', 8), adjustedSumBaseVol.Text('f', 8), min.Text('f', 8), max.Text('f', 8), nil
 }
@@ -531,7 +531,7 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	}
 
 	//debug 
-	fmt.Printf("Offer Id = %s\n", offerid)
+	//fmt.Printf("Offer Id = %s\n", offerid)
 	//construct calldata
 	calldata = "0x4579268a" + offerid[2:]
 	//create new tx object for querying best offer
@@ -564,24 +564,24 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	}
 
 	//debug
-	fmt.Printf("Base Token Amount = %s\n", sBaseTokenAmt)
-	fmt.Printf("Quote Token Amount = %s\n", sQuoteTokenAmt)
+	//fmt.Printf("Base Token Amount = %s\n", sBaseTokenAmt)
+	//fmt.Printf("Quote Token Amount = %s\n", sQuoteTokenAmt)
 
 	//convert from string to int
 	intBaseTokenAmt := parser.Hex2Int(sBaseTokenAmt)
 	intQuoteTokenAmt:= parser.Hex2Int(sQuoteTokenAmt)
 
 	//debug
-	fmt.Printf("[PostHex2Int] Base Token Amount = %s\n", intBaseTokenAmt.Text(10))
-	fmt.Printf("[PostHex2Int] Quote Token Amount = %s\n", intQuoteTokenAmt.Text(10))
+	//fmt.Printf("[PostHex2Int] Base Token Amount = %s\n", intBaseTokenAmt.Text(10))
+	//fmt.Printf("[PostHex2Int] Quote Token Amount = %s\n", intQuoteTokenAmt.Text(10))
 
 	//adjust for precision
 	adjustedBaseTokenAmt := parser.AdjustIntForPrecision(intBaseTokenAmt, data.TokenInfoLib[baseToken].Precision)
 	adjustedQuoteTokenAmt := parser.AdjustIntForPrecision(intQuoteTokenAmt, data.TokenInfoLib[quoteToken].Precision)
 
 	//debug
-	fmt.Printf("[Post-AdjustIntForPrecision] Base Token Amount = %s\n", adjustedBaseTokenAmt.Text('f', 8))
-	fmt.Printf("[Post-AdjustIntForPrecision] Quote Token Amount = %s\n", adjustedQuoteTokenAmt.Text('f', 8))
+	//fmt.Printf("[Post-AdjustIntForPrecision] Base Token Amount = %s\n", adjustedBaseTokenAmt.Text('f', 8))
+	//fmt.Printf("[Post-AdjustIntForPrecision] Quote Token Amount = %s\n", adjustedQuoteTokenAmt.Text('f', 8))
 
 	//calculate price
 	fBestOffer.Quo(adjustedQuoteTokenAmt, adjustedBaseTokenAmt)
@@ -589,6 +589,10 @@ func GetBestOffer(baseToken string, quoteToken string, otype string) (string, er
 	return fBestOffer.Text('f', 8), nil
 }
 
+//This is deprecated because the Oasis Contract got rid of the whitelisting functionality
+//This means that technically ANY token can be traded on OasisDex
+//Trying to change the implementation of this to scan through all orders and find all token pairs
+//With open orders is resource prohibitive.
 func GetAllPairs() (map[string]*data.Market) {
 	//loop through each market in static data
 	for tokenPair, marketData := range data.LiveMarkets {
@@ -620,6 +624,10 @@ func GetAllPairs() (map[string]*data.Market) {
 	return data.LiveMarkets
 }
 
+//This is deprecated because the Oasis Contract got rid of the whitelisting functionality
+//This means that technically ANY token can be traded on OasisDex
+//Trying to change the implementation of this to scan through all orders and find all token pairs
+//With open orders is resource prohibitive.
 func GetPair(baseToken string, quoteToken string) (*data.Market, error) {
 	tokenPair := strings.ToUpper(baseToken) + "/" + strings.ToUpper(quoteToken)
 	pMarket := data.LiveMarkets[tokenPair]
@@ -658,8 +666,8 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	baseTokenContract := data.TokenInfoLib[baseToken].Contract
 	quoteTokenContract := data.TokenInfoLib[quoteToken].Contract
 
-	fmt.Printf("Denom token contract = %s\n", baseTokenContract)
-	fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
+	//fmt.Printf("Denom token contract = %s\n", baseTokenContract)
+	//fmt.Printf("Quote token contract = %s\n", quoteTokenContract)
 
 	//create event filter
 	filter, err := CreateEventFilter("24hour", "latest", []string{data.OASIS.Contract}, [][]string{[]string{"0x819e390338feffe95e2de57172d6faf337853dfd15c7a09a32d76f7fd2443875"}})
@@ -680,14 +688,14 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 			//skip log - this should never happen
 			continue
 		} else if (log.Topics[1] == baseTokenContract && log.Topics[2] == quoteTokenContract) {
-			fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
+			//fmt.Println("Found topic 1 is baseToken and topic 2 is quoteToken")
 			sBaseVol := log.Data[2:66]
 			iSumBaseVol.Add(iSumBaseVol, parser.Hex2Int(sBaseVol))
 			if (!atLeastOneRelevantLog) {
 				atLeastOneRelevantLog = true
 			}
 		} else if (log.Topics[1] == quoteTokenContract && log.Topics[2] == baseTokenContract) {
-			fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
+			//fmt.Println("Found topic 1 is quoteToken and topic 2 is baseToken")
 			sBaseVol := log.Data[67:130]
 			iSumBaseVol.Add(iSumBaseVol, parser.Hex2Int(sBaseVol))
 			if (!atLeastOneRelevantLog) {
@@ -708,7 +716,7 @@ func GetTokenPairVolume(baseToken string, quoteToken string) (string, error) {
 	}
 
 	//Debug - print volume weighted price
-	fmt.Printf("Volume = %s\n", adjustedBaseVol.Text('f', 8))
+	//fmt.Printf("Volume = %s\n", adjustedBaseVol.Text('f', 8))
 
 	return adjustedBaseVol.Text('f', 8), nil
 }

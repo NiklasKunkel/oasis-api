@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 )
@@ -23,7 +22,7 @@ func AdjustIntForPrecision(i *big.Int, precision int) (*big.Float) {
 	f1 := new(big.Float).SetInt(i)
 
 	//For debug purposes take this out later
-	fmt.Println(f1)
+	//fmt.Println(f1)
 
 	if (precision == 0) {
 		return f1
@@ -39,7 +38,7 @@ func AdjustIntForPrecision(i *big.Int, precision int) (*big.Float) {
 	f1.Quo(f1, f2)
 
 	//For debug purposes take this out later
-	fmt.Printf("Adjusted Value = %s\n", f1.Text('f', 8))
+	//fmt.Printf("Adjusted Value = %s\n", f1.Text('f', 8))
 
 	return f1
 }
@@ -60,7 +59,7 @@ func AdjustFloatForPrecision(f *big.Float, precision int) (*big.Float) {
 	adjustedVal.Quo(f, f2)
 
 	//For debug purposes take this out later
-	fmt.Printf("Adjusted Value = %s\n", adjustedVal.Text('f', 8))
+	//fmt.Printf("Adjusted Value = %s\n", adjustedVal.Text('f', 8))
 
 	return adjustedVal
 }
@@ -68,6 +67,6 @@ func AdjustFloatForPrecision(f *big.Float, precision int) (*big.Float) {
 //Converts time in hours into approximate number of blocks
 func Hours2Block(time int) (int) {
 	seconds := time * 60 * 60
-	blocks := seconds / 14
+	blocks := seconds / 18
 	return blocks
 }

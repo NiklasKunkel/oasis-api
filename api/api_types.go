@@ -60,6 +60,31 @@ type TokenSupply struct {
 	CirculatingSupply	string		`json:"circulatingSupply,omitempty"`
 }
 
+type Stats struct {
+	APIGetAllPairs 			int 	`json:"GetAllPairs"`
+	APIGetPair     			int 	`json:"GetPair"`
+	APIGetAllMarkets 		int 	`json:"GetAllMarkets"`
+	APICoinmarketcap		int	`json:"Coinmarketcap"`
+	APIDeprecated 			int 	`json:"APIDeprecated"`
+	APIGetTokenPairMarketMKRDAI 	int 	`json:"Market-MKR-DAI"`
+	APIGetTokenPairMarketETHDAI 	int 	`json:"Market-ETH-DAI"`
+	APIGetTokenPairMarketMKRETH	int 	`json:"Market-MKR-ETH"`
+	APIGetTokenPairMarketDGDETH 	int 	`json:"Market-DGD-ETH"`
+	APIGetTokenPairMarketREPETH 	int 	`json:"Market-REP-ETH"`
+	APIGetTokenPairMarketZRXETH 	int 	`json:"Market-ZRX-ETH"`
+	APIGetTokenPairMarketRHOCETH 	int 	`json:"Market-RHOC-ETH"`
+	APIGetAllPrices 		int 	`json:"GetAllPrices"`
+	APIGetTokenPairPrice 		int 	`json:"GetTokenPairPrice"`
+	APIGetAllVolume 		int 	`json:"GetAllVolume"`
+	APIGetTokenPairVolume 		int 	`json:"GetTokenPairVolume"`
+	APIGetAllSpread 		int 	`json:"GetAllSpread"`
+	APIGetTokenPairSpread		int 	`json:"GetTokenPairSpread"`
+	APIGetTokenPairTradeHistory 	int 	`json:"GetTokenPairTradeHistory"`
+	APIGetMkrTokenSupply 		int 	`json:"GetMkrTokenSupply"`
+	APIGetDaiTokenSupply		int 	`json:"GetDaiTokenSupply"`
+	APIGetStats 			int 	`json:"GetStats"`
+}
+
 type Error struct {
 	Message 	string				`json:"message"`
 }

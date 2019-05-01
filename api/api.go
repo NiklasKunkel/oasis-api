@@ -12,12 +12,18 @@ import (
 	"github.com/niklaskunkel/oasis-api/data"
 )
 
+var callCounter = map[string]int{}
+
+//Deprecated because OasisDex doesn't have whitelisting of pairs anymore
 func APIGetAllPairs(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetAllPairs"]++
 	allPairs := client.GetAllPairs()
 	json.NewEncoder(w).Encode(Response{allPairs, time.Now().Unix(), "success"})
 }
 
+//Deprecated because OasisDex doesn't have whitelisting of pairs anymore
 func APIGetPair(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetPair"]++
 	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -39,6 +45,7 @@ func APIGetPair(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
+	callCounter["APICoinmarketcap"]++
 	allMarkets := Response{make(AllMarkets), time.Now().Unix(), "null"}
 	//iterate over all token pairs
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
@@ -57,16 +64,16 @@ func APIGetAllMarkets(w http.ResponseWriter, req *http.Request) {
 		allMarkets.Message = "Querying market data for all token pairs failed"
 		json.NewEncoder(w).Encode(allMarkets)
 	}
-	allMarkets.Message = "success"
+	allMarkets.Message = "This call will be deprecated soon. Please query specific token pair."
 	json.NewEncoder(w).Encode(allMarkets)
 }
-
 
 func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req) 
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
 	tokenPair := baseToken + string('/') + quoteToken
+	callCounter["APIGetTokenPairMarket" + baseToken + quoteToken]++
 
 	//Verify that token pair is supported by oasisdex
 	if (!client.IsValidTokenPair(tokenPair)) {
@@ -84,6 +91,7 @@ func APIGetTokenPairMarket(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetAllPrices"]++
 	allPrices := Response{make(AllPrices), time.Now().Unix(), "null"}
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		prices := []string{"null", "null", "null", "null", "null"}
@@ -110,6 +118,7 @@ func APIGetAllPrices(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetTokenPairPrice"]++
 	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -138,6 +147,7 @@ func APIGetTokenPairPrice(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllVolume(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetAllVolume"]++
 	allVolumes := Response{make(AllVolumes), time.Now().Unix(), "null"}
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		vol, err := client.GetTokenPairVolume(tokenPairInfo.Base, tokenPairInfo.Quote)
@@ -151,6 +161,7 @@ func APIGetAllVolume(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetTokenPairVolume"]++
 	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -168,6 +179,7 @@ func APIGetTokenPairVolume(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetAllSpread"]++
 	allSpreads := Response{make(AllSpreads), time.Now().Unix(), "null"}
 	for tokenPair, tokenPairInfo := range data.LiveMarkets {
 		baseToken := tokenPairInfo.Base
@@ -187,6 +199,7 @@ func APIGetAllSpread(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetTokenPairSpread"]++
 	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -205,6 +218,7 @@ func APIGetTokenPairSpread(w http.ResponseWriter, req *http.Request) {
 }
 
 func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetTokenPairTradeHistory"]++
 	params := mux.Vars(req)
 	baseToken := strings.ToUpper(params["base"])
 	quoteToken := strings.ToUpper(params["quote"])
@@ -229,6 +243,7 @@ func APIGetTokenPairTradeHistory(w http.ResponseWriter, req *http.Request) {
 
 //Get MKR Token Supply
 func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetMkrTokenSupply"]++
 	totalSupply, circulatingSupply, err := client.GetMkrTokenSupply()
 	if err != nil {
 		json.NewEncoder(w).Encode(Response{TokenSupply{}, time.Now().Unix(), "Querying MKR token supply failed"})
@@ -240,6 +255,7 @@ func APIGetMkrTokenSupply(w http.ResponseWriter, req *http.Request) {
 
 //Get DAI Token Supply
 func APIGetDaiTokenSupply(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetDaiTokenSupply"]++
 	supply, err := client.GetDaiTokenSupply()
 	if err != nil {
 		json.NewEncoder(w).Encode(Response{TokenSupply{}, time.Now().Unix(), "Querying DAI token supply failed"})
@@ -249,26 +265,91 @@ func APIGetDaiTokenSupply(w http.ResponseWriter, req *http.Request) {
 	return
 }
 
+//Get API query frequency
+func APIGetStats(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIGetStats"]++
+	stats := Stats{}
+	for query, frequency := range callCounter {
+		switch query {
+		case "APIGetAllPairs":
+			stats.APIGetAllPairs = frequency
+		case "APIGetPair":
+			stats.APIGetPair = frequency
+		case "APIGetAllMarkets":
+			stats.APIGetAllMarkets = frequency
+		case "APICoinmarketcap":
+			stats.APICoinmarketcap = frequency
+		case "APIDeprecated":
+			stats.APIDeprecated = frequency
+		case "APIGetTokenPairMarketETHDAI":
+			stats.APIGetTokenPairMarketETHDAI = frequency
+		case "APIGetTokenPairMarketMKRDAI":
+			stats.APIGetTokenPairMarketMKRDAI = frequency
+		case "APIGetTokenPairMarketMKRETH":
+			stats.APIGetTokenPairMarketMKRETH = frequency
+		case "APIGetTokenPairMarketDGDETH":
+			stats.APIGetTokenPairMarketDGDETH = frequency
+		case "APIGetTokenPairMarketREPETH":
+			stats.APIGetTokenPairMarketREPETH = frequency
+		case "APIGetTokenPairMarketZRXETH":
+			stats.APIGetTokenPairMarketZRXETH = frequency
+		case "APIGetTokenPairMarketRHOCETH":
+			stats.APIGetTokenPairMarketRHOCETH = frequency
+		case "APIGetAllPrices":
+			stats.APIGetAllPrices = frequency
+		case "APIGetTokenPairPrice":
+			stats.APIGetTokenPairPrice = frequency
+		case "APIGetAllVolume":
+			stats.APIGetAllVolume = frequency
+		case "APIGetTokenPairVolume":
+			stats.APIGetTokenPairVolume = frequency
+		case "APIGetAllSpread":
+			stats.APIGetAllSpread = frequency
+		case "APIGetTokenPairSpread":
+			stats.APIGetTokenPairSpread = frequency
+		case "APIGetTokenPairTradeHistory":
+			stats.APIGetTokenPairTradeHistory = frequency
+		case "APIGetMkrTokenSupply":
+			stats.APIGetMkrTokenSupply = frequency
+		case "APIGetDaiTokenSupply":
+			stats.APIGetDaiTokenSupply = frequency
+		case "APIGetStats":
+			stats.APIGetStats = frequency
+		}
+	}
+	json.NewEncoder(w).Encode(Response{stats, time.Now().Unix(), "success"})
+	return
+}
+
+//Deprecated
+func APIDeprecated(w http.ResponseWriter, req *http.Request) {
+	callCounter["APIDeprecated"]++
+	json.NewEncoder(w).Encode(Response{nil, time.Now().Unix(), "This call has been deprecated, please query specific token pair"})
+	return
+}
+
 //Request Handler
 func InitAPIServer() {
 
 	router := mux.NewRouter()																//Create new router
 
 	//API Endpoints
-	router.HandleFunc("/v1/pairs/", APIGetAllPairs).Methods("GET")							//REST endpoint for calling all tradable token pairs
-	router.HandleFunc("/v1/pairs/{base}/{quote}", APIGetPair).Methods("GET")				//REST endpoint for calling tradable token pairs
-	router.HandleFunc("/v1/markets/", APIGetAllMarkets).Methods("GET")						//REST endpoint for calling market data of all token pairs
+	//router.HandleFunc("/v1/pairs/", APIGetAllPairs).Methods("GET")				//REST endpoint for calling all tradable token pairs
+	//router.HandleFunc("/v1/pairs/{base}/{quote}", APIGetPair).Methods("GET")		//REST endpoint for calling tradable token pairs
+	router.HandleFunc("/v1/markets/", APIDeprecated).Methods("GET")			//REST endpoint for calling market data of all token pairs
+	router.HandleFunc("/v1/coinmarketcap/", APIGetAllMarkets).Methods("GET")		//REST endpoint exclusively for coinmarketcap
 	router.HandleFunc("/v1/markets/{base}/{quote}", APIGetTokenPairMarket).Methods("GET")	//REST endpoint for calling market data of a token pair
-	router.HandleFunc("/v1/prices/", APIGetAllPrices).Methods("GET")						//REST endpoint for calling price of all token pairs
-	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")		//REST endpoint for calling price of token pair
-	router.HandleFunc("/v1/volumes/", APIGetAllVolume).Methods("GET")						//REST endpoint for calling volume of all token pairs
+	router.HandleFunc("/v1/prices/", APIGetAllPrices).Methods("GET")			//REST endpoint for calling price of all token pairs
+	router.HandleFunc("/v1/prices/{base}/{quote}", APIGetTokenPairPrice).Methods("GET")	//REST endpoint for calling price of token pair
+	router.HandleFunc("/v1/volumes/", APIGetAllVolume).Methods("GET")			//REST endpoint for calling volume of all token pairs
 	router.HandleFunc("/v1/volumes/{base}/{quote}", APIGetTokenPairVolume).Methods("GET")	//REST endpoint for calling volume of token pair
-	router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")						//REST endpoint for calling spread of all token pairs
+	router.HandleFunc("/v1/spreads/", APIGetAllSpread).Methods("GET")			//REST endpoint for calling spread of all token pairs
 	router.HandleFunc("/v1/spreads/{base}/{quote}", APIGetTokenPairSpread).Methods("GET")	//REST endpoint for calling spread of token pair
 	router.HandleFunc("/v1/trades/{base}/{quote}", APIGetTokenPairTradeHistory).Methods("GET")	//REST endpoint for calling trade history of token pair
 	//router.HandleFunc("/v1/orders/{base}/{quote}", APIGetTokenPairOrders).Methods("GET")	//not implemented yet
-	router.HandleFunc("/v1/tokens/mkr/supply", APIGetMkrTokenSupply).Methods("GET")			//REST endpoint for calling MKR token supply
-	router.HandleFunc("/v1/tokens/dai/supply", APIGetDaiTokenSupply).Methods("GET")			//REST endpoint for calling DAI token supply
+	router.HandleFunc("/v1/tokens/mkr/supply", APIGetMkrTokenSupply).Methods("GET")		//REST endpoint for calling MKR token supply
+	router.HandleFunc("/v1/tokens/dai/supply", APIGetDaiTokenSupply).Methods("GET")		//REST endpoint for calling DAI token supply
+	router.HandleFunc("/v1/stats/", APIGetStats).Methods("GET")							//REST endpoint for getting call frequency of queries
 
 	fmt.Printf("API Server Started\nReady for incoming requests\n")
 
